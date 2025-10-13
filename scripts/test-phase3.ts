@@ -7,6 +7,14 @@
  * - Sleep Timer
  * - Alarm Management
  * - Snapshot (save/restore state)
+ * 
+ * Usage:
+ * - With device discovery: npm run test:phase3
+ * - With manual device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase3
+ * 
+ * Note: This test requires a real Sonos device on the network.
+ * If no devices are found via discovery and no manual IP is provided,
+ * the test will fail with a device not found error.
  */
 
 import { spawn, type ChildProcess } from 'child_process';
