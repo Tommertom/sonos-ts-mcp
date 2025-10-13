@@ -50,8 +50,9 @@ npm test           # Run tests
 ## Available Tools
 
 ### Discovery
-- `sonos_discover` - Discover Sonos devices on the network
-- `sonos_list_devices` - List all discovered devices
+- `sonos_discover` - Discover Sonos devices on the network using SSDP multicast
+- `sonos_add_device` - Manually add a Sonos device by IP address (useful when SSDP discovery fails)
+- `sonos_list_devices` - List all discovered/registered devices
 
 ### Playback Control
 - `sonos_play` - Start playback
@@ -98,6 +99,29 @@ src/
 - Sends UDP multicast to `239.255.255.250:1900`
 - Searches for `urn:schemas-upnp-org:device:ZonePlayer:1`
 - Parses response headers to extract device location
+
+**Note on Discovery**: SSDP multicast discovery may not work in all network environments due to:
+- Windows Firewall blocking UDP port 1900
+- Network switches not properly forwarding multicast traffic
+- VPN interference with multicast routing
+- Corporate network policies
+
+If automatic discovery fails, use the `sonos_add_device` tool to manually register devices by IP address. The server will verify connectivity before registering the device.
+
+### Manual Device Registration
+
+When SSDP discovery doesn't work, you can manually add devices:
+
+```typescript
+// Using the MCP tool
+sonos_add_device({
+  ip: "192.168.1.100",
+  port: 1400,  // optional, defaults to 1400
+  name: "Kitchen"  // optional, defaults to "Sonos at {ip}"
+})
+```
+
+The server will test connectivity to the device before adding it to the registry.
 
 ### Control (SOAP/UPnP)
 - HTTP POST to `http://{ip}:1400/...`
