@@ -10,9 +10,7 @@ export class DeviceRegistry {
             ip,
             port,
             location: `http://${ip}:${port}/xml/device_description.xml`,
-            metadata: {
-                name: name || `Sonos at ${ip}`,
-            },
+            name: name || `Sonos at ${ip}`,
         };
         this.devices.set(uuid, device);
         return device;

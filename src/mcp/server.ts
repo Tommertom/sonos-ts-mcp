@@ -11,6 +11,8 @@ import { DeviceRegistry } from '../discovery/device-registry.js';
 import { AVTransportService } from '../services/av-transport.js';
 import { RenderingControlService } from '../services/rendering-control.js';
 import { ZoneGroupTopologyService } from '../services/zone-topology.js';
+import { SoapClient } from '../soap/client.js';
+import { RequestBuilder } from '../soap/request-builder.js';
 
 export class SonosMcpServer {
     private server: Server;
@@ -261,6 +263,8 @@ export class SonosMcpServer {
             switch (name) {
                 case 'sonos_discover':
                     return await this.handleDiscover(args);
+                case 'sonos_add_device':
+                    return await this.handleAddDevice(args);
                 case 'sonos_list_devices':
                     return this.handleListDevices();
                 case 'sonos_play':
@@ -325,6 +329,42 @@ export class SonosMcpServer {
                 {
                     type: 'text',
                     text: `Discovered ${responses.length} Sonos device(s)`,
+                },
+            ],
+        };
+    }
+
+    private async handleAddDevice(args: unknown) {
+        if (typeof args !== 'object' || args === null || !('ip' in args)) {
+            throw new Error('IP address is required');
+        }
+
+        const ip = args.ip as string;
+        const port = 'port' in args ? (args.port as number) : 1400;
+        const name = 'name' in args ? (args.name as string) : undefined;
+
+        const soapClient = new SoapClient();
+        const body = RequestBuilder.buildSimpleBody({ InstanceID: 0 });
+        const response = await soapClient.call({
+            ip,
+            port,
+            endpoint: '/MediaRenderer/AVTransport/Control',
+            service: 'urn:schemas-upnp-org:service:AVTransport:1',
+            action: 'GetTransportInfo',
+            body,
+        });
+
+        if (!response.success) {
+            throw new Error(`Cannot reach Sonos device at ${ip}:${port}`);
+        }
+
+        const device = this.registry.addManualDevice(ip, port, name);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Successfully added Sonos device at ${ip}`,
                 },
             ],
         };
