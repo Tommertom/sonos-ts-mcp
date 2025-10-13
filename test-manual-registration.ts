@@ -19,30 +19,30 @@ async function testManualRegistration() {
     const retrieved = registry.getDeviceByIp(KITCHEN_IP);
     console.log(`✓ Retrieved device: ${retrieved?.name}\n`);
 
-  console.log('3. Getting transport info...');
-  const avTransport = new AVTransportService(device);
-  const transportInfo = await avTransport.getTransportInfo();
-  
-  if (!transportInfo) {
-    console.error('❌ Failed to get transport info');
-    return;
-  }
-  
-  console.log(`✓ Transport State: ${transportInfo.state}`);
-  console.log(`✓ Transport Status: ${transportInfo.status}\n`);
-  
-  if (transportInfo.state === 'PLAYING') {
-    console.log('4. Getting current track info...');
-    const positionInfo = await avTransport.getPositionInfo();
-    
-    if (positionInfo && positionInfo.track) {
-      console.log(`✓ Now Playing:`);
-      console.log(`  Title: ${positionInfo.track.title || 'Unknown'}`);
-      console.log(`  Artist: ${positionInfo.track.artist || 'Unknown'}`);
-      console.log(`  Album: ${positionInfo.track.album || 'Unknown'}`);
-      console.log(`  Position: ${positionInfo.position || 'Unknown'} / ${positionInfo.track.duration || 'Unknown'}\n`);
+    console.log('3. Getting transport info...');
+    const avTransport = new AVTransportService(device);
+    const transportInfo = await avTransport.getTransportInfo();
+
+    if (!transportInfo) {
+        console.error('❌ Failed to get transport info');
+        return;
     }
-  }    console.log('5. Getting volume controls...');
+
+    console.log(`✓ Transport State: ${transportInfo.state}`);
+    console.log(`✓ Transport Status: ${transportInfo.status}\n`);
+
+    if (transportInfo.state === 'PLAYING') {
+        console.log('4. Getting current track info...');
+        const positionInfo = await avTransport.getPositionInfo();
+
+        if (positionInfo && positionInfo.track) {
+            console.log(`✓ Now Playing:`);
+            console.log(`  Title: ${positionInfo.track.title || 'Unknown'}`);
+            console.log(`  Artist: ${positionInfo.track.artist || 'Unknown'}`);
+            console.log(`  Album: ${positionInfo.track.album || 'Unknown'}`);
+            console.log(`  Position: ${positionInfo.position || 'Unknown'} / ${positionInfo.track.duration || 'Unknown'}\n`);
+        }
+    } console.log('5. Getting volume controls...');
     const rendering = new RenderingControlService(device);
     const volume = await rendering.getVolume();
     const muted = await rendering.getMute();
