@@ -2,6 +2,21 @@
 
 All notable changes to the Sonos TypeScript MCP Server project.
 
+## [Unreleased]
+
+### Fixed
+- **Phase 4 MCP Tools**: Implemented missing MCP server tools for event subscriptions
+  - `sonos_subscribe_events` - Subscribe to real-time device events
+  - `sonos_unsubscribe_events` - Unsubscribe from specific subscription
+  - `sonos_unsubscribe_all` - Unsubscribe from all device events
+  - `sonos_list_subscriptions` - List active subscriptions
+  - Fixes test-phase4.ts script which was calling non-existent tools
+  - Event subscription system is now fully usable via MCP protocol
+
+### Documentation
+- Updated `docs/PHASE-4-COMPLETE.md` with MCP tool documentation and usage examples
+- Added Phase 4 event subscription tools to README.md tool listing
+
 ## [1.4.0] - 2025-10-13 - Phase 4 Complete
 
 ### Added
