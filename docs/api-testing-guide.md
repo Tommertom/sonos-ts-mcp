@@ -224,6 +224,47 @@ If discovery fails:
 2. Check network connectivity
 3. Verify multicast is enabled on your router
 4. Try manually adding a device IP in the test scripts
+5. **Use mock mode** to test without real devices (see below)
+
+### Mock Mode (Phase 2 Tests)
+The Phase 2 test script supports a **mock mode** that allows testing without physical Sonos devices. This is useful for:
+- CI/CD environments without hardware
+- Testing the test infrastructure itself
+- Demonstrating the test flow
+
+To use mock mode, run the test with either:
+
+**Command-line flag:**
+```bash
+npm run test:phase2 -- --mock
+```
+
+**Environment variable:**
+```bash
+MOCK_DEVICES=true npm run test:phase2
+```
+
+In mock mode, the script:
+- Creates two simulated Sonos devices
+- Returns mock data for all API calls
+- Validates the test flow without network operations
+- Displays all expected test output
+
+Example mock mode output:
+```
+╔══════════════════════════════════════════╗
+║     Phase 2 API Test Suite (MOCK MODE)   ║
+║  Groups & Music Library Browsing         ║
+╚══════════════════════════════════════════╝
+
+⚠️  Running in MOCK MODE (no real devices required)
+
+✅ Created 2 mock device(s):
+   1. Mock Sonos Device 1 (RINCON_MOCK001)
+   2. Mock Sonos Device 2 (RINCON_MOCK002)
+
+...all tests pass with mock data...
+```
 
 ### Server Startup Failures
 If the server fails to start:
