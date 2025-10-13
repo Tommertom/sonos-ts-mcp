@@ -101,7 +101,12 @@ npm run test:phase1  # Queue, DIDL, Playback Properties
 npm run test:phase2  # Groups & Music Library Browsing
 npm run test:phase3  # Audio, Alarms, Snapshots
 npm run test:phase4  # Event Subscriptions
+
+# Run Phase 2 tests in mock mode (no physical devices required)
+npm run test:phase2 -- --mock
 ```
+
+**Note**: Phase 2 tests support a mock mode for testing without physical Sonos devices. Use `--mock` flag or set `MOCK_DEVICES=true` environment variable.
 
 See the [API Testing Guide](./docs/api-testing-guide.md) for detailed documentation on the test suite.
 
