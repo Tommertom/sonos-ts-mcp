@@ -6,6 +6,14 @@
  * - Group Management (join, unjoin)
  * - Music Library Browsing (artists, albums, tracks, genres, playlists)
  * - Content Directory Search
+ * 
+ * Usage:
+ * - With device discovery: npm run test:phase2
+ * - With manual device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase2
+ * - With mock mode (no real devices): npm run test:phase2 -- --mock
+ * - With mock mode (env var): MOCK_DEVICES=true npm run test:phase2
+ * 
+ * Note: This test can work with real devices, manual IP, or in mock mode.
  */
 
 import { spawn, type ChildProcess } from 'child_process';
@@ -76,6 +84,21 @@ async function startMcpServer(): Promise<void> {
 async function initializeAndDiscover(): Promise<void> {
     console.log('🔌 Initializing MCP connection...\n');
     await initializeMcpConnection(mcpProcess);
+
+    // Check for manual device IP via environment variable
+    const manualIp = process.env.SONOS_DEVICE_IP;
+    
+    if (manualIp) {
+        console.log(`📍 Using manual device IP: ${manualIp}\n`);
+        // Register the device manually
+        await callTool(mcpProcess, {
+            name: 'sonos_register_device',
+            arguments: { ip: manualIp, port: 1400 },
+        });
+        devices = [{ ip: manualIp, uuid: manualIp, name: 'Manual Device' }] as any;
+        console.log(`✅ Manually registered device: ${manualIp}\n`);
+        return;
+    }
 
     console.log('🔍 Discovering Sonos devices...\n');
     
