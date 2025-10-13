@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ContentDirectoryService } from '../src/services/content-directory.js';
 import type { SonosDevice } from '../src/types/sonos.js';
 
+// Type for testing private methods
+type TestableContentDirectoryService = ContentDirectoryService & {
+    callAction: (action: string, body: string) => Promise<{ success: boolean; body?: string }>;
+};
+
 describe('ContentDirectoryService', () => {
     let service: ContentDirectoryService;
     let mockDevice: SonosDevice;
@@ -23,10 +28,10 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.getArtists();
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Browse',
                 expect.stringContaining('A:ARTIST')
             );
@@ -38,10 +43,10 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.getAlbums();
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Browse',
                 expect.stringContaining('A:ALBUM')
             );
@@ -53,10 +58,10 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.getTracks();
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Browse',
                 expect.stringContaining('A:TRACKS')
             );
@@ -68,10 +73,10 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.getGenres();
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Browse',
                 expect.stringContaining('A:GENRE')
             );
@@ -83,10 +88,10 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.getSonosPlaylists();
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Browse',
                 expect.stringContaining('SQ:')
             );
@@ -100,7 +105,7 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>10</TotalMatches><NumberReturned>10</NumberReturned><UpdateID>5</UpdateID>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.browse('Q:0');
 
@@ -115,7 +120,7 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>100</TotalMatches><NumberReturned>20</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.browse('A:ARTIST', {
                 startIndex: 10,
@@ -124,7 +129,7 @@ describe('ContentDirectoryService', () => {
                 sortCriteria: '+dc:title',
             });
 
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Browse',
                 expect.stringContaining('<StartingIndex>10</StartingIndex>')
             );
@@ -136,7 +141,7 @@ describe('ContentDirectoryService', () => {
                 body: `<Result></Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.browse('Q:0');
 
@@ -150,7 +155,7 @@ describe('ContentDirectoryService', () => {
                 success: false,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.browse('Q:0');
 
@@ -167,11 +172,11 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.browseMetadata('S:1234');
 
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Browse',
                 expect.stringContaining('BrowseMetadata')
             );
@@ -185,12 +190,12 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>5</TotalMatches><NumberReturned>5</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.search('artists', 'Beatles');
 
             expect(result.total).toBe(5);
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Search',
                 expect.stringContaining('Beatles')
             );
@@ -202,11 +207,11 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.search('artists', 'AC"DC');
 
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Search',
                 expect.stringContaining('&quot;')
             );
@@ -218,11 +223,11 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.search('albums', 'Black Album');
 
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'Search',
                 expect.stringContaining('dc:title contains')
             );
@@ -236,12 +241,12 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>150</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.getAll('A:ARTIST');
 
             expect(result.length).toBe(0);
-            expect((service as any).callAction).toHaveBeenCalledTimes(1);
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledTimes(1);
         });
 
         it('should respect maxItems limit', async () => {
@@ -250,11 +255,11 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>200</TotalMatches><NumberReturned>100</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             await service.getAll('A:ARTIST', 50);
 
-            expect((service as any).callAction).toHaveBeenCalledTimes(1);
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -265,7 +270,7 @@ describe('ContentDirectoryService', () => {
                 body: '<IsIndexing>1</IsIndexing>',
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.isLibraryUpdating();
 
@@ -278,7 +283,7 @@ describe('ContentDirectoryService', () => {
                 body: '<IsIndexing>0</IsIndexing>',
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.isLibraryUpdating();
 
@@ -292,12 +297,12 @@ describe('ContentDirectoryService', () => {
                 success: true,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.startLibraryUpdate();
 
             expect(result).toBe(true);
-            expect((service as any).callAction).toHaveBeenCalledWith(
+            expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
                 'RefreshShareIndex',
                 expect.any(String)
             );
@@ -311,7 +316,7 @@ describe('ContentDirectoryService', () => {
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
             };
 
-            vi.spyOn(service as any, 'callAction').mockResolvedValue(mockResponse);
+            vi.spyOn(service as unknown as TestableContentDirectoryService, 'callAction').mockResolvedValue(mockResponse);
 
             const result = await service.getShares();
 
