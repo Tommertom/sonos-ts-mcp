@@ -76,8 +76,8 @@ export class AlarmClockService extends BaseService {
 
         const response = await this.callAction('CreateAlarm', body);
         if (!response.success || !response.body) {
-            const errorMsg = response.error 
-                ? `${response.error.message} (code: ${response.error.code})` 
+            const errorMsg = response.error
+                ? `${response.error.message} (code: ${response.error.code})`
                 : 'Unknown error';
             throw new Error(`Failed to create alarm: ${errorMsg}`);
         }

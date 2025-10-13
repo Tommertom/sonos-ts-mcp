@@ -417,6 +417,35 @@ manager.on<VolumeEvent>('Volume', (event) => {
 });
 ```
 
+## Bug Fixes & Improvements
+
+### Subscription Renewal for Short Timeouts
+**Fixed**: Renewal time calculation for subscriptions with timeouts shorter than 5 minutes.
+
+**Issue**: The original implementation calculated renewal time as `timeout - 300 seconds` (5 minutes before expiry). For timeouts shorter than 300 seconds (e.g., 120 seconds for testing), this resulted in negative values, causing immediate or invalid renewal attempts.
+
+**Solution**: Implemented adaptive renewal buffer that uses 50% of the timeout duration or 5 minutes, whichever is smaller:
+```typescript
+const renewBuffer = Math.min(300, Math.floor(timeout * 0.5));
+const renewAt = new Date(Date.now() + (timeout - renewBuffer) * 1000);
+```
+
+This ensures:
+- Short timeouts (e.g., 120s) renew at 60s (50%)
+- Standard timeouts (e.g., 1800s/30min) renew at 1500s (5min before expiry)
+
+### HTTP 412 Error Handling
+**Fixed**: Graceful handling of HTTP 412 (Precondition Failed) during unsubscribe operations.
+
+**Issue**: When unsubscribing from events, if the subscription had already expired on the Sonos device side, a HTTP 412 error would be thrown, causing error messages in the logs even though the unsubscribe operation should be considered successful.
+
+**Solution**: Modified the `makeRequest` function to accept a list of valid status codes, and updated the `unsubscribe` method to accept both 200 (success) and 412 (already expired) as valid responses:
+```typescript
+await makeRequest('UNSUBSCRIBE', url, headers, [200, 412]);
+```
+
+This provides cleaner unsubscribe operations without spurious error messages when subscriptions have naturally expired.
+
 ## Known Limitations
 
 1. **MCP Tool Integration**: Direct MCP tools for event management not yet implemented

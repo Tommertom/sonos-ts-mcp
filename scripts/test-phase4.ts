@@ -58,7 +58,7 @@ async function initializeAndDiscover(): Promise<void> {
 
     // Check for manual device IP via environment variable
     const manualIp = process.env.SONOS_DEVICE_IP;
-    
+
     if (manualIp) {
         console.log(`📍 Using manual device IP: ${manualIp}\n`);
         // Register the device manually

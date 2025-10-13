@@ -21,7 +21,8 @@ import type { SonosDevice } from '../types/sonos.js';
 function makeRequest(
     method: string,
     url: string,
-    headers: Record<string, string>
+    headers: Record<string, string>,
+    acceptedStatusCodes: number[] = [200]
 ): Promise<{ statusCode: number; headers: Record<string, string | string[] | undefined> }> {
     return new Promise((resolve, reject) => {
         const req = httpRequest(
@@ -31,13 +32,13 @@ function makeRequest(
                 headers,
             },
             (res) => {
-                if (res.statusCode !== 200) {
+                if (!acceptedStatusCodes.includes(res.statusCode || 0)) {
                     reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
                     return;
                 }
 
                 resolve({
-                    statusCode: res.statusCode,
+                    statusCode: res.statusCode || 0,
                     headers: res.headers as Record<string, string | string[] | undefined>,
                 });
             }
@@ -103,8 +104,9 @@ export class SubscriptionManager {
                 throw new Error('No SID returned in SUBSCRIBE response');
             }
 
-            // Calculate renewal time (renew 5 minutes before expiry)
-            const renewAt = new Date(Date.now() + (timeout - 300) * 1000);
+            // Calculate renewal time (renew 5 minutes before expiry, or at 50% for short timeouts)
+            const renewBuffer = Math.min(300, Math.floor(timeout * 0.5));
+            const renewAt = new Date(Date.now() + (timeout - renewBuffer) * 1000);
 
             // Store subscription info
             const subscription: EventSubscription = {
@@ -154,8 +156,9 @@ export class SubscriptionManager {
                 headers
             );
 
-            // Update renewal time
-            subscription.renewAt = new Date(Date.now() + (subscription.timeout - 300) * 1000);
+            // Update renewal time (use same logic as initial subscription)
+            const renewBuffer = Math.min(300, Math.floor(subscription.timeout * 0.5));
+            subscription.renewAt = new Date(Date.now() + (subscription.timeout - renewBuffer) * 1000);
             this.subscriptions.set(sid, subscription);
 
             // Reschedule renewal
@@ -185,13 +188,15 @@ export class SubscriptionManager {
         };
 
         try {
+            // Accept both 200 (success) and 412 (subscription already expired/invalid)
             await makeRequest(
                 'UNSUBSCRIBE',
                 url,
-                headers
+                headers,
+                [200, 412]
             );
         } catch (error) {
-            // Ignore errors when unsubscribing
+            // Ignore errors when unsubscribing - subscription might already be expired
             console.error(`Error unsubscribing ${sid}:`, error);
         } finally {
             // Clean up subscription tracking
