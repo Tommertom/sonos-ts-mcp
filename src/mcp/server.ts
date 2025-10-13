@@ -11,6 +11,9 @@ import { DeviceRegistry } from '../discovery/device-registry.js';
 import { AVTransportService } from '../services/av-transport.js';
 import { RenderingControlService } from '../services/rendering-control.js';
 import { ZoneGroupTopologyService } from '../services/zone-topology.js';
+import { ContentDirectoryService } from '../services/content-directory.js';
+import { AlarmClockService } from '../services/alarm-clock.js';
+import { SnapshotService } from '../services/snapshot.js';
 import { SoapClient } from '../soap/client.js';
 import { RequestBuilder } from '../soap/request-builder.js';
 
@@ -22,7 +25,7 @@ export class SonosMcpServer {
         this.server = new Server(
             {
                 name: 'sonos-mcp-server',
-                version: '1.0.0',
+                version: '1.3.0',
             },
             {
                 capabilities: {
@@ -439,6 +442,538 @@ export class SonosMcpServer {
                         required: ['deviceId'],
                     },
                 },
+                // Group Management Tools
+                {
+                    name: 'sonos_join_group',
+                    description: 'Join this device to another device\'s group',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address to join from',
+                            },
+                            masterDeviceId: {
+                                type: 'string',
+                                description: 'Master/coordinator device UUID or IP address to join to',
+                            },
+                        },
+                        required: ['deviceId', 'masterDeviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_unjoin',
+                    description: 'Remove this device from its current group (make it standalone)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                // Music Library Browsing Tools
+                {
+                    name: 'sonos_browse_artists',
+                    description: 'Browse artists in the music library',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of items to return (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_browse_albums',
+                    description: 'Browse albums in the music library',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of items to return (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_browse_tracks',
+                    description: 'Browse tracks in the music library',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of items to return (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_browse_genres',
+                    description: 'Browse genres in the music library',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of items to return (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_browse_playlists',
+                    description: 'Browse Sonos playlists',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of items to return (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_search_library',
+                    description: 'Search the music library',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            searchType: {
+                                type: 'string',
+                                description: 'Type of search',
+                                enum: ['artists', 'albums', 'tracks', 'genres'],
+                            },
+                            searchTerm: {
+                                type: 'string',
+                                description: 'Search term',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of items to return (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId', 'searchType', 'searchTerm'],
+                    },
+                },
+                {
+                    name: 'sonos_browse_item',
+                    description: 'Browse a specific music library item (e.g., get albums for an artist, tracks for an album)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            objectId: {
+                                type: 'string',
+                                description: 'Object ID to browse (from a previous browse or search result)',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of items to return (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId', 'objectId'],
+                    },
+                },
+                // Phase 3 Features - EQ Controls
+                {
+                    name: 'sonos_set_bass',
+                    description: 'Set bass level (-10 to 10)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            bass: {
+                                type: 'number',
+                                description: 'Bass level (-10 to 10)',
+                                minimum: -10,
+                                maximum: 10,
+                            },
+                        },
+                        required: ['deviceId', 'bass'],
+                    },
+                },
+                {
+                    name: 'sonos_set_treble',
+                    description: 'Set treble level (-10 to 10)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            treble: {
+                                type: 'number',
+                                description: 'Treble level (-10 to 10)',
+                                minimum: -10,
+                                maximum: 10,
+                            },
+                        },
+                        required: ['deviceId', 'treble'],
+                    },
+                },
+                {
+                    name: 'sonos_set_loudness',
+                    description: 'Enable or disable loudness compensation',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            enabled: {
+                                type: 'boolean',
+                                description: 'Enable loudness',
+                            },
+                        },
+                        required: ['deviceId', 'enabled'],
+                    },
+                },
+                {
+                    name: 'sonos_get_eq',
+                    description: 'Get current EQ settings (bass, treble, loudness)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_set_night_mode',
+                    description: 'Set night mode for home theater devices (reduces loud sounds)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            enabled: {
+                                type: 'boolean',
+                                description: 'Enable night mode',
+                            },
+                        },
+                        required: ['deviceId', 'enabled'],
+                    },
+                },
+                {
+                    name: 'sonos_set_dialog_mode',
+                    description: 'Set dialog enhancement for home theater devices (enhances speech clarity)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            enabled: {
+                                type: 'boolean',
+                                description: 'Enable dialog enhancement',
+                            },
+                        },
+                        required: ['deviceId', 'enabled'],
+                    },
+                },
+                // Phase 3 Features - Sleep Timer
+                {
+                    name: 'sonos_set_sleep_timer',
+                    description: 'Set sleep timer to automatically stop playback after a duration',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            duration: {
+                                type: 'string',
+                                description: 'Duration in HH:MM:SS format (e.g., "00:30:00" for 30 minutes)',
+                            },
+                        },
+                        required: ['deviceId', 'duration'],
+                    },
+                },
+                {
+                    name: 'sonos_get_sleep_timer',
+                    description: 'Get remaining sleep timer duration',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_cancel_sleep_timer',
+                    description: 'Cancel the sleep timer',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                // Phase 3 Features - Alarms
+                {
+                    name: 'sonos_list_alarms',
+                    description: 'List all configured alarms',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_create_alarm',
+                    description: 'Create a new alarm',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            startTime: {
+                                type: 'string',
+                                description: 'Start time in HH:MM:SS format (e.g., "07:00:00")',
+                            },
+                            recurrence: {
+                                type: 'string',
+                                description: 'DAILY, ONCE, WEEKDAYS, WEEKENDS, or ON_0123456 (0=Sunday)',
+                            },
+                            enabled: {
+                                type: 'boolean',
+                                description: 'Enable alarm (default: true)',
+                                default: true,
+                            },
+                            volume: {
+                                type: 'number',
+                                description: 'Alarm volume (0-100, default: 25)',
+                                minimum: 0,
+                                maximum: 100,
+                                default: 25,
+                            },
+                            duration: {
+                                type: 'string',
+                                description: 'Duration in HH:MM:SS (default: 02:00:00)',
+                                default: '02:00:00',
+                            },
+                        },
+                        required: ['deviceId', 'startTime', 'recurrence'],
+                    },
+                },
+                {
+                    name: 'sonos_update_alarm',
+                    description: 'Update an existing alarm',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            alarmId: {
+                                type: 'string',
+                                description: 'Alarm ID to update',
+                            },
+                            startTime: {
+                                type: 'string',
+                                description: 'Start time in HH:MM:SS format',
+                            },
+                            recurrence: {
+                                type: 'string',
+                                description: 'DAILY, ONCE, WEEKDAYS, WEEKENDS, or ON_0123456',
+                            },
+                            enabled: {
+                                type: 'boolean',
+                                description: 'Enable/disable alarm',
+                            },
+                            volume: {
+                                type: 'number',
+                                description: 'Alarm volume (0-100)',
+                                minimum: 0,
+                                maximum: 100,
+                            },
+                        },
+                        required: ['deviceId', 'alarmId'],
+                    },
+                },
+                {
+                    name: 'sonos_delete_alarm',
+                    description: 'Delete an alarm',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            alarmId: {
+                                type: 'string',
+                                description: 'Alarm ID to delete',
+                            },
+                        },
+                        required: ['deviceId', 'alarmId'],
+                    },
+                },
+                // Phase 3 Features - Snapshot/Restore
+                {
+                    name: 'sonos_snapshot',
+                    description: 'Take a snapshot of current device state (playback, volume, EQ)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_restore_snapshot',
+                    description: 'Restore a previously saved snapshot',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            snapshot: {
+                                type: 'string',
+                                description: 'JSON string of the snapshot to restore',
+                            },
+                            fade: {
+                                type: 'boolean',
+                                description: 'Fade volume up on restore (default: false)',
+                                default: false,
+                            },
+                        },
+                        required: ['deviceId', 'snapshot'],
+                    },
+                },
+                // Phase 3 Features - Party Mode
+                {
+                    name: 'sonos_party_mode',
+                    description: 'Join all devices to this device (party mode)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address (coordinator)',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
             ],
         }));
 
@@ -501,6 +1036,61 @@ export class SonosMcpServer {
                     return await this.handleSetCrossfade(args);
                 case 'sonos_get_playback_state':
                     return await this.handleGetPlaybackState(args);
+                case 'sonos_join_group':
+                    return await this.handleJoinGroup(args);
+                case 'sonos_unjoin':
+                    return await this.handleUnjoin(args);
+                case 'sonos_browse_artists':
+                    return await this.handleBrowseArtists(args);
+                case 'sonos_browse_albums':
+                    return await this.handleBrowseAlbums(args);
+                case 'sonos_browse_tracks':
+                    return await this.handleBrowseTracks(args);
+                case 'sonos_browse_genres':
+                    return await this.handleBrowseGenres(args);
+                case 'sonos_browse_playlists':
+                    return await this.handleBrowsePlaylists(args);
+                case 'sonos_search_library':
+                    return await this.handleSearchLibrary(args);
+                case 'sonos_browse_item':
+                    return await this.handleBrowseItem(args);
+                // Phase 3 - EQ Controls
+                case 'sonos_set_bass':
+                    return await this.handleSetBass(args);
+                case 'sonos_set_treble':
+                    return await this.handleSetTreble(args);
+                case 'sonos_set_loudness':
+                    return await this.handleSetLoudness(args);
+                case 'sonos_get_eq':
+                    return await this.handleGetEQ(args);
+                case 'sonos_set_night_mode':
+                    return await this.handleSetNightMode(args);
+                case 'sonos_set_dialog_mode':
+                    return await this.handleSetDialogMode(args);
+                // Phase 3 - Sleep Timer
+                case 'sonos_set_sleep_timer':
+                    return await this.handleSetSleepTimer(args);
+                case 'sonos_get_sleep_timer':
+                    return await this.handleGetSleepTimer(args);
+                case 'sonos_cancel_sleep_timer':
+                    return await this.handleCancelSleepTimer(args);
+                // Phase 3 - Alarms
+                case 'sonos_list_alarms':
+                    return await this.handleListAlarms(args);
+                case 'sonos_create_alarm':
+                    return await this.handleCreateAlarm(args);
+                case 'sonos_update_alarm':
+                    return await this.handleUpdateAlarm(args);
+                case 'sonos_delete_alarm':
+                    return await this.handleDeleteAlarm(args);
+                // Phase 3 - Snapshot/Restore
+                case 'sonos_snapshot':
+                    return await this.handleSnapshot(args);
+                case 'sonos_restore_snapshot':
+                    return await this.handleRestoreSnapshot(args);
+                // Phase 3 - Party Mode
+                case 'sonos_party_mode':
+                    return await this.handlePartyMode(args);
                 default:
                     return {
                         content: [
@@ -968,6 +1558,559 @@ export class SonosMcpServer {
                 {
                     type: 'text',
                     text: JSON.stringify(state, null, 2),
+                },
+            ],
+        };
+    }
+
+    // Group Management Handlers
+    private async handleJoinGroup(args: unknown) {
+        const { deviceId, masterDeviceId } = args as { deviceId: string; masterDeviceId: string };
+        const device = this.getDevice(deviceId);
+        const masterDevice = this.getDevice(masterDeviceId);
+
+        const service = new ZoneGroupTopologyService(device);
+        const success = await service.join(masterDevice.uuid);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success
+                        ? `Device ${device.name || device.ip} joined group with ${masterDevice.name || masterDevice.ip}`
+                        : 'Failed to join group',
+                },
+            ],
+        };
+    }
+
+    private async handleUnjoin(args: unknown) {
+        const deviceId = (args as { deviceId: string }).deviceId;
+        const device = this.getDevice(deviceId);
+        const service = new ZoneGroupTopologyService(device);
+        const success = await service.unjoin();
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success
+                        ? `Device ${device.name || device.ip} removed from group`
+                        : 'Failed to unjoin from group',
+                },
+            ],
+        };
+    }
+
+    // Music Library Browsing Handlers
+    private async handleBrowseArtists(args: unknown) {
+        const { deviceId, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new ContentDirectoryService(device);
+        const result = await service.getArtists({ startIndex, count });
+
+        const artists = result.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            type: item.upnpClass,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Found ${result.total} artists (showing ${result.returned}):\n\n${JSON.stringify(artists, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleBrowseAlbums(args: unknown) {
+        const { deviceId, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new ContentDirectoryService(device);
+        const result = await service.getAlbums({ startIndex, count });
+
+        const albums = result.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            artist: item.getProperty('artist'),
+            type: item.upnpClass,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Found ${result.total} albums (showing ${result.returned}):\n\n${JSON.stringify(albums, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleBrowseTracks(args: unknown) {
+        const { deviceId, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new ContentDirectoryService(device);
+        const result = await service.getTracks({ startIndex, count });
+
+        const tracks = result.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            artist: item.getProperty('artist'),
+            album: item.getProperty('album'),
+            uri: item.resources[0]?.uri,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Found ${result.total} tracks (showing ${result.returned}):\n\n${JSON.stringify(tracks, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleBrowseGenres(args: unknown) {
+        const { deviceId, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new ContentDirectoryService(device);
+        const result = await service.getGenres({ startIndex, count });
+
+        const genres = result.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            type: item.upnpClass,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Found ${result.total} genres (showing ${result.returned}):\n\n${JSON.stringify(genres, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleBrowsePlaylists(args: unknown) {
+        const { deviceId, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new ContentDirectoryService(device);
+        const result = await service.getSonosPlaylists({ startIndex, count });
+
+        const playlists = result.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            type: item.upnpClass,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Found ${result.total} playlists (showing ${result.returned}):\n\n${JSON.stringify(playlists, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleSearchLibrary(args: unknown) {
+        const { deviceId, searchType, searchTerm, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            searchType: 'artists' | 'albums' | 'tracks' | 'genres';
+            searchTerm: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new ContentDirectoryService(device);
+        const result = await service.search(searchType, searchTerm, { startIndex, count });
+
+        const items = result.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            artist: item.getProperty('artist'),
+            album: item.getProperty('album'),
+            type: item.upnpClass,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Search for "${searchTerm}" in ${searchType} found ${result.total} results (showing ${result.returned}):\n\n${JSON.stringify(items, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleBrowseItem(args: unknown) {
+        const { deviceId, objectId, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            objectId: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new ContentDirectoryService(device);
+        const result = await service.browse(objectId, { startIndex, count });
+
+        const items = result.items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            artist: item.getProperty('artist'),
+            album: item.getProperty('album'),
+            uri: item.resources[0]?.uri,
+            type: item.upnpClass,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Browsing ${objectId} found ${result.total} items (showing ${result.returned}):\n\n${JSON.stringify(items, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    // Phase 3 Handlers - EQ Controls
+    private async handleSetBass(args: unknown) {
+        const { deviceId, bass } = args as { deviceId: string; bass: number };
+        const device = this.getDevice(deviceId);
+        const service = new RenderingControlService(device);
+        await service.setBass(bass);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Set bass to ${bass}`,
+                },
+            ],
+        };
+    }
+
+    private async handleSetTreble(args: unknown) {
+        const { deviceId, treble } = args as { deviceId: string; treble: number };
+        const device = this.getDevice(deviceId);
+        const service = new RenderingControlService(device);
+        await service.setTreble(treble);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Set treble to ${treble}`,
+                },
+            ],
+        };
+    }
+
+    private async handleSetLoudness(args: unknown) {
+        const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
+        const device = this.getDevice(deviceId);
+        const service = new RenderingControlService(device);
+        await service.setLoudness(enabled);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Loudness ${enabled ? 'enabled' : 'disabled'}`,
+                },
+            ],
+        };
+    }
+
+    private async handleGetEQ(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const service = new RenderingControlService(device);
+
+        const bass = await service.getBass();
+        const treble = await service.getTreble();
+        const loudness = await service.getLoudness();
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `EQ Settings:\nBass: ${bass}\nTreble: ${treble}\nLoudness: ${loudness ? 'enabled' : 'disabled'}`,
+                },
+            ],
+        };
+    }
+
+    private async handleSetNightMode(args: unknown) {
+        const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
+        const device = this.getDevice(deviceId);
+        const service = new RenderingControlService(device);
+        await service.setNightMode(enabled);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Night mode ${enabled ? 'enabled' : 'disabled'}`,
+                },
+            ],
+        };
+    }
+
+    private async handleSetDialogMode(args: unknown) {
+        const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
+        const device = this.getDevice(deviceId);
+        const service = new RenderingControlService(device);
+        await service.setDialogLevel(enabled);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Dialog enhancement ${enabled ? 'enabled' : 'disabled'}`,
+                },
+            ],
+        };
+    }
+
+    // Phase 3 Handlers - Sleep Timer
+    private async handleSetSleepTimer(args: unknown) {
+        const { deviceId, duration } = args as { deviceId: string; duration: string };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        await service.configureSleepTimer(duration);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Sleep timer set to ${duration}`,
+                },
+            ],
+        };
+    }
+
+    private async handleGetSleepTimer(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const remaining = await service.getSleepTimerRemaining();
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: remaining ? `Sleep timer: ${remaining} remaining` : 'No sleep timer active',
+                },
+            ],
+        };
+    }
+
+    private async handleCancelSleepTimer(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        await service.cancelSleepTimer();
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: 'Sleep timer cancelled',
+                },
+            ],
+        };
+    }
+
+    // Phase 3 Handlers - Alarms
+    private async handleListAlarms(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const service = new AlarmClockService(device);
+        const alarms = await service.listAlarms();
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Found ${alarms.length} alarm(s):\n\n${JSON.stringify(alarms, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleCreateAlarm(args: unknown) {
+        const { deviceId, startTime, recurrence, enabled = true, volume = 25, duration = '02:00:00' } = args as {
+            deviceId: string;
+            startTime: string;
+            recurrence: string;
+            enabled?: boolean;
+            volume?: number;
+            duration?: string;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new AlarmClockService(device);
+        const alarmId = await service.createAlarm({
+            startTime,
+            recurrence,
+            enabled,
+            volume,
+            duration,
+        });
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Alarm created with ID: ${alarmId}`,
+                },
+            ],
+        };
+    }
+
+    private async handleUpdateAlarm(args: unknown) {
+        const { deviceId, alarmId, ...updates } = args as {
+            deviceId: string;
+            alarmId: string;
+            startTime?: string;
+            recurrence?: string;
+            enabled?: boolean;
+            volume?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new AlarmClockService(device);
+        await service.updateAlarm(alarmId, updates);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Alarm ${alarmId} updated`,
+                },
+            ],
+        };
+    }
+
+    private async handleDeleteAlarm(args: unknown) {
+        const { deviceId, alarmId } = args as { deviceId: string; alarmId: string };
+        const device = this.getDevice(deviceId);
+        const service = new AlarmClockService(device);
+        await service.destroyAlarm(alarmId);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Alarm ${alarmId} deleted`,
+                },
+            ],
+        };
+    }
+
+    // Phase 3 Handlers - Snapshot/Restore
+    private async handleSnapshot(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const service = new SnapshotService(device);
+        const snapshot = await service.snapshot();
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Snapshot taken:\n\n${JSON.stringify(snapshot, null, 2)}`,
+                },
+            ],
+        };
+    }
+
+    private async handleRestoreSnapshot(args: unknown) {
+        const { deviceId, snapshot: snapshotJson, fade = false } = args as {
+            deviceId: string;
+            snapshot: string;
+            fade?: boolean;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new SnapshotService(device);
+        const snapshot = JSON.parse(snapshotJson);
+        await service.restore(snapshot, fade);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: 'Snapshot restored',
+                },
+            ],
+        };
+    }
+
+    // Phase 3 Handlers - Party Mode
+    private async handlePartyMode(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const topologyService = new ZoneGroupTopologyService(device);
+
+        // Get all groups and join all other devices to this one
+        const groups = await topologyService.getZoneGroupState();
+        if (!groups) {
+            throw new Error('Failed to get zone groups');
+        }
+
+        const thisDeviceUuid = device.uuid;
+        const joinedDevices: string[] = [];
+
+        // Find all devices that are not already in this device's group
+        const thisGroup = groups.find(g => g.members.includes(thisDeviceUuid));
+        const currentMembers = thisGroup?.members ?? [thisDeviceUuid];
+
+        // Collect all other devices and join them
+        for (const group of groups) {
+            for (const memberUuid of group.members) {
+                if (!currentMembers.includes(memberUuid) && memberUuid !== thisDeviceUuid) {
+                    try {
+                        // Get the device from registry
+                        const memberDevice = this.registry.getDevice(memberUuid);
+                        if (memberDevice) {
+                            const memberTopology = new ZoneGroupTopologyService(memberDevice);
+                            await memberTopology.join(thisDeviceUuid);
+                            joinedDevices.push(memberUuid);
+                        }
+                    } catch (error) {
+                        console.error(`Failed to join device ${memberUuid}:`, error);
+                    }
+                }
+            }
+        }
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Party mode activated! Joined ${joinedDevices.length} device(s)`,
                 },
             ],
         };

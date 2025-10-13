@@ -1,6 +1,6 @@
 {
   "name": "sonos-ts-mcp",
-  "version": "1.1.0",
+  "version": "1.4.0",
   "description": "Model Context Protocol server for Sonos audio devices",
   "type": "module",
   "main": "dist/index.js",
@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:discovery": "tsx scripts/test-discovery.ts",
+    "test:events": "tsx scripts/test-events.ts",
     "lint": "eslint src tests",
     "format": "prettier --write src tests",
     "typecheck": "tsc --noEmit"

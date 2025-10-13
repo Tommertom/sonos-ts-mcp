@@ -2,7 +2,7 @@
 
 A Model Context Protocol (MCP) server for controlling Sonos audio devices over the local network using UPnP/SOAP.
 
-> **📊 Feature Status**: Phase 1 complete! Implements DIDL-Lite metadata, queue management, and playback properties. See [Phase 1 completion](./docs/PHASE-1-COMPLETE.md) for details.
+> **📊 Feature Status**: Phase 4 complete! Implements real-time event subscriptions with UPnP GENA protocol for playback, volume, queue, and topology changes. See [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for details.
 
 ## Features
 
@@ -14,22 +14,28 @@ A Model Context Protocol (MCP) server for controlling Sonos audio devices over t
 - **Queue Management**: Full queue control (add, remove, reorder, save, play)
 - **DIDL-Lite Support**: Complete metadata handling for tracks, albums, and containers
 - **Playback Properties**: Shuffle, repeat, and crossfade controls
+- **Group Management**: Join and unjoin devices to create multi-room groups
+- **Music Library Browsing**: Browse artists, albums, tracks, genres, and playlists
+- **Library Search**: Fuzzy search across your music library
+- **Audio/EQ Controls**: Bass, treble, loudness, night mode, dialog enhancement
+- **Sleep Timer**: Automatic playback stop after duration
+- **Alarm Management**: Create, update, and delete alarms
+- **Snapshot/Restore**: Save and restore complete device state
+- **Party Mode**: Join all devices at once
+- **Event Subscriptions**: Real-time notifications for state changes ✨ NEW
 - **Pure TypeScript**: Built from scratch without external Sonos libraries
 - **MCP Compatible**: Integrates with any MCP-compatible client
 
-### Planned Features
+### Planned Features (Phase 5+)
 
 This project is actively expanding to match the comprehensive feature set of the Python SoCo library:
 
-- 🚧 Group management (join, unjoin, party mode)
-- 🟠 Playlist management (create, edit, delete playlists)
-- 🟠 Music library browsing (artists, albums, tracks)
-- 🟡 Event subscriptions (real-time updates)
-- 🟡 Alarm configuration
-- 🟢 Snapshot/restore state
-- 🟢 Home theater controls
+-  Music service integration (Spotify, Apple Music)
+- 🟢 Advanced group management (stereo pairs, home theater)
+- 🟢 Audio analysis and diagnostics
+- 🟢 MCP event tool integration
 
-See the [implementation roadmap](./docs/implementation-roadmap.md) for the complete expansion plan.
+See the [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for the latest features.
 
 ## Installation
 
@@ -110,6 +116,43 @@ npm run test:discovery # Test Sonos device discovery
 - `sonos_set_crossfade` - Enable or disable crossfade
 - `sonos_get_playback_state` - Get shuffle, repeat, crossfade, and playback state
 
+### Group Management
+- `sonos_join_group` - Join a device to another device's group
+- `sonos_unjoin` - Remove a device from its group
+- `sonos_party_mode` - Join all devices at once ✨ NEW
+
+### Music Library
+- `sonos_browse_artists` - Browse all artists in the music library
+- `sonos_browse_albums` - Browse all albums in the music library
+- `sonos_browse_tracks` - Browse all tracks in the music library
+- `sonos_browse_genres` - Browse all genres in the music library
+- `sonos_browse_playlists` - Browse Sonos playlists
+- `sonos_search_library` - Search the music library
+- `sonos_browse_item` - Browse subcategories (e.g., albums for an artist)
+
+### Audio/EQ Controls ✨ NEW
+- `sonos_set_bass` - Set bass level (-10 to 10)
+- `sonos_set_treble` - Set treble level (-10 to 10)
+- `sonos_set_loudness` - Enable/disable loudness compensation
+- `sonos_get_eq` - Get all EQ settings
+- `sonos_set_night_mode` - Enable/disable night mode (home theater)
+- `sonos_set_dialog_mode` - Enable/disable dialog enhancement (home theater)
+
+### Sleep Timer ✨ NEW
+- `sonos_set_sleep_timer` - Set automatic playback stop timer
+- `sonos_get_sleep_timer` - Get remaining timer
+- `sonos_cancel_sleep_timer` - Cancel sleep timer
+
+### Alarm Management ✨ NEW
+- `sonos_list_alarms` - List all alarms
+- `sonos_create_alarm` - Create a new alarm
+- `sonos_update_alarm` - Update an existing alarm
+- `sonos_delete_alarm` - Delete an alarm
+
+### State Management ✨ NEW
+- `sonos_snapshot` - Take a snapshot of device state
+- `sonos_restore_snapshot` - Restore from snapshot
+
 ### Information
 - `sonos_get_transport_info` - Get playback state
 - `sonos_get_position_info` - Get current track details
@@ -136,9 +179,12 @@ src/
 │   └── response-parser.ts
 ├── services/         # Sonos service wrappers
 │   ├── base-service.ts
-│   ├── av-transport.ts
-│   ├── rendering-control.ts
-│   └── zone-topology.ts
+│   ├── av-transport.ts        # Playback, queue, sleep timer
+│   ├── rendering-control.ts   # Volume, EQ, audio enhancements
+│   ├── zone-topology.ts       # Groups, party mode
+│   ├── content-directory.ts   # Music library browsing
+│   ├── alarm-clock.ts         # ✨ NEW: Alarm management
+│   └── snapshot.ts            # ✨ NEW: State snapshot/restore
 ├── mcp/             # MCP server implementation
 │   └── server.ts
 └── types/           # TypeScript definitions

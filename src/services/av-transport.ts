@@ -3,7 +3,8 @@ import { RequestBuilder } from '../soap/request-builder.js';
 import { XmlParser } from '../soap/response-parser.js';
 import type { SonosPlaybackState } from '../types/sonos.js';
 import type { QueueInfo, QueueTrack, AddToQueueOptions } from '../types/queue.js';
-import { toDidlString, fromDidlString, type DidlObject } from '../didl/index.js';
+import { toDidlString, type DidlObject } from '../didl/index.js';
+import { ContentDirectoryService } from './content-directory.js';
 
 export class AVTransportService extends BaseService {
     protected getServiceType(): string {
@@ -315,58 +316,25 @@ export class AVTransportService extends BaseService {
 
     /**
      * Get the current queue
-     * Note: This uses the ContentDirectory service which should be factored out
+     * Uses ContentDirectoryService to browse the queue
      */
     async getQueue(startIndex = 0, count = 100): Promise<QueueInfo> {
-        // For now, we'll create a temporary ContentDirectory call
-        // TODO: Extract this into a separate ContentDirectoryService
-        const body = `<ObjectID>Q:0</ObjectID><BrowseFlag>BrowseDirectChildren</BrowseFlag><Filter>*</Filter><StartingIndex>${startIndex}</StartingIndex><RequestedCount>${count}</RequestedCount><SortCriteria></SortCriteria>`;
+        const contentDirectory = new ContentDirectoryService(this.device);
+        const result = await contentDirectory.browse('Q:0', { startIndex, count });
 
-        const response = await this.soapClient.call({
-            ip: this.device.ip,
-            port: this.device.port,
-            endpoint: '/MediaServer/ContentDirectory/Control',
-            service: 'urn:schemas-upnp-org:service:ContentDirectory:1',
-            action: 'Browse',
-            body,
-        });
-
-        if (!response.success || !response.body) {
-            return { totalTracks: 0, tracks: [] };
-        }
-
-        const result = XmlParser.extractValue(response.body, 'Result') ?? '';
-        const totalMatches = parseInt(XmlParser.extractValue(response.body, 'TotalMatches') ?? '0');
-
-        // Parse DIDL-Lite XML
-        const tracks: QueueTrack[] = [];
-        if (result) {
-            try {
-                const unescapedResult = XmlParser.unescapeXml(result);
-                const didlObjects = await fromDidlString(unescapedResult);
-
-                for (let i = 0; i < didlObjects.length; i++) {
-                    const obj = didlObjects[i];
-                    if (!obj) continue;
-
-                    tracks.push({
-                        position: startIndex + i + 1,
-                        uri: obj.resources[0]?.uri ?? '',
-                        metadata: obj,
-                        title: obj.title,
-                        artist: obj.getProperty('artist') as string | undefined,
-                        album: obj.getProperty('album') as string | undefined,
-                        albumArtUri: obj.getProperty('albumArtUri') as string | undefined,
-                        duration: obj.resources[0]?.duration,
-                    });
-                }
-            } catch (err) {
-                console.error('Failed to parse queue DIDL:', err);
-            }
-        }
+        const tracks: QueueTrack[] = result.items.map((obj, index) => ({
+            position: startIndex + index + 1,
+            uri: obj.resources[0]?.uri ?? '',
+            metadata: obj,
+            title: obj.title,
+            artist: obj.getProperty('artist') as string | undefined,
+            album: obj.getProperty('album') as string | undefined,
+            albumArtUri: obj.getProperty('albumArtUri') as string | undefined,
+            duration: obj.resources[0]?.duration,
+        }));
 
         return {
-            totalTracks: totalMatches,
+            totalTracks: result.total,
             tracks,
         };
     }
@@ -479,6 +447,44 @@ export class AVTransportService extends BaseService {
 
         // Finally, start playback
         return this.play();
+    }
+
+    /**
+     * Configure sleep timer (automatic stop after duration)
+     * @param duration Duration in HH:MM:SS format (e.g., "00:30:00" for 30 minutes)
+     */
+    async configureSleepTimer(duration: string): Promise<boolean> {
+        const body = RequestBuilder.buildSimpleBody({
+            InstanceID: 0,
+            NewSleepTimerDuration: duration,
+        });
+
+        const response = await this.callAction('ConfigureSleepTimer', body);
+        return response.success;
+    }
+
+    /**
+     * Get remaining sleep timer duration
+     * @returns Duration in HH:MM:SS format, or empty string if no timer set
+     */
+    async getSleepTimerRemaining(): Promise<string | null> {
+        const body = RequestBuilder.buildSimpleBody({
+            InstanceID: 0,
+        });
+
+        const response = await this.callAction('GetRemainingSleepTimerDuration', body);
+        if (!response.success || !response.body) {
+            return null;
+        }
+
+        return XmlParser.extractValue(response.body, 'RemainingSleepTimerDuration') ?? null;
+    }
+
+    /**
+     * Cancel the sleep timer
+     */
+    async cancelSleepTimer(): Promise<boolean> {
+        return this.configureSleepTimer('');
     }
 }
 
