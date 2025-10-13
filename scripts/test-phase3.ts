@@ -282,7 +282,7 @@ async function testSnapshot(): Promise<void> {
     // Test: Create Snapshot
     await runTest('Create State Snapshot', async () => {
         const result = await callTool(mcpProcess, {
-            name: 'sonos_create_snapshot',
+            name: 'sonos_snapshot',
             arguments: { deviceId },
         });
 
