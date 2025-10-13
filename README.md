@@ -58,6 +58,12 @@ This will perform an SSDP multicast search and display any Sonos devices found o
 
 ### As MCP Server
 
+The server supports two transport modes:
+
+#### Stdio Mode (Default)
+
+Stdio mode is the standard way to run MCP servers, communicating over standard input/output. This is the mode used by most MCP clients.
+
 Add to your MCP client configuration:
 
 ```json
@@ -70,6 +76,52 @@ Add to your MCP client configuration:
   }
 }
 ```
+
+Or run directly:
+
+```bash
+node dist/index.js
+```
+
+You can also use the convenience script:
+
+```bash
+npm run start:stdio
+# or
+tsx scripts/start-mcp-stdio.ts
+```
+
+#### SSE Mode (HTTP Server)
+
+SSE (Server-Sent Events) mode runs the MCP server as an HTTP server, useful for web-based clients or remote access.
+
+Set the `MCP_TRANSPORT` environment variable to `sse`:
+
+```bash
+MCP_TRANSPORT=sse node dist/index.js
+```
+
+Or with custom port (default is 3000):
+
+```bash
+MCP_TRANSPORT=sse MCP_PORT=8080 node dist/index.js
+```
+
+You can also use the convenience script:
+
+```bash
+npm run start:sse
+# or
+tsx scripts/start-mcp-sse.ts
+```
+
+With custom port:
+
+```bash
+MCP_PORT=8080 npm run start:sse
+```
+
+The server will start an HTTP endpoint at `http://localhost:3000/sse` (or your configured port) that clients can connect to.
 
 ### Development
 
