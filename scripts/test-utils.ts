@@ -321,6 +321,13 @@ export async function callTool(
     // Parse the text content if it's JSON
     if (response.result && typeof response.result === 'object') {
         const result = response.result as any;
+        
+        // Check if the result has an error flag
+        if (result.isError) {
+            const errorText = result.content?.[0]?.text || 'Unknown error';
+            throw new Error(errorText);
+        }
+        
         if (result.content && Array.isArray(result.content) && result.content.length > 0) {
             const textContent = result.content[0].text;
             if (textContent) {

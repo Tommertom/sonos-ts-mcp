@@ -76,10 +76,13 @@ export class AlarmClockService extends BaseService {
 
         const response = await this.callAction('CreateAlarm', body);
         if (!response.success || !response.body) {
-            throw new Error('Failed to create alarm');
+            throw new Error('Failed to create alarm: SOAP request failed');
         }
 
         const assignedId = XmlParser.extractValue(response.body, 'AssignedID') ?? '';
+        if (!assignedId) {
+            throw new Error('Failed to create alarm: No AssignedID in response');
+        }
         return assignedId;
     }
 

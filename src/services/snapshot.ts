@@ -34,43 +34,47 @@ export class SnapshotService {
      * @returns DeviceSnapshot object containing all relevant state
      */
     async snapshot(): Promise<DeviceSnapshot> {
-        const avTransport = new AVTransportService(this.device);
-        const renderingControl = new RenderingControlService(this.device);
-        const zoneTopology = new ZoneGroupTopologyService(this.device);
+        try {
+            const avTransport = new AVTransportService(this.device);
+            const renderingControl = new RenderingControlService(this.device);
+            const zoneTopology = new ZoneGroupTopologyService(this.device);
 
-        // Gather transport state
-        const transportInfo = await avTransport.getTransportInfo();
-        const positionInfo = await avTransport.getPositionInfo();
+            // Gather transport state
+            const transportInfo = await avTransport.getTransportInfo();
+            const positionInfo = await avTransport.getPositionInfo();
 
-        // Gather volume/EQ state
-        const volume = await renderingControl.getVolume() ?? 0;
-        const mute = await renderingControl.getMute() ?? false;
-        const bass = await renderingControl.getBass() ?? 0;
-        const treble = await renderingControl.getTreble() ?? 0;
-        const loudness = await renderingControl.getLoudness() ?? false;
+            // Gather volume/EQ state
+            const volume = await renderingControl.getVolume() ?? 0;
+            const mute = await renderingControl.getMute() ?? false;
+            const bass = await renderingControl.getBass() ?? 0;
+            const treble = await renderingControl.getTreble() ?? 0;
+            const loudness = await renderingControl.getLoudness() ?? false;
 
-        // Gather group state
-        const isCoordinator = await zoneTopology.isCoordinator();
-        const group = await zoneTopology.getGroup();
+            // Gather group state
+            const isCoordinator = await zoneTopology.isCoordinator();
+            const group = await zoneTopology.getGroup();
 
-        // Get play mode
-        const playMode = await avTransport.getPlayMode() ?? 'NORMAL';
+            // Get play mode
+            const playMode = await avTransport.getPlayMode() ?? 'NORMAL';
 
-        return {
-            transportState: transportInfo?.state ?? 'STOPPED',
-            trackUri: positionInfo?.track?.uri ?? '',
-            trackMetadata: '', // Would need to extract from position info
-            trackPosition: positionInfo?.position ?? '0:00:00',
-            playMode,
-            volume,
-            mute,
-            bass,
-            treble,
-            loudness,
-            wasCoordinator: isCoordinator,
-            groupMembers: group?.members ?? [],
-            timestamp: Date.now(),
-        };
+            return {
+                transportState: transportInfo?.state ?? 'STOPPED',
+                trackUri: positionInfo?.track?.uri ?? '',
+                trackMetadata: '', // Would need to extract from position info
+                trackPosition: positionInfo?.position ?? '0:00:00',
+                playMode,
+                volume,
+                mute,
+                bass,
+                treble,
+                loudness,
+                wasCoordinator: isCoordinator,
+                groupMembers: group?.members ?? [],
+                timestamp: Date.now(),
+            };
+        } catch (error) {
+            throw new Error(`Failed to create snapshot: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
 
     /**
