@@ -81,7 +81,7 @@ Tests the following APIs:
   - `sonos_delete_alarm` - Delete alarm
 
 - **State Snapshots**
-  - `sonos_create_snapshot` - Capture current state
+  - `sonos_snapshot` - Capture current state
   - `sonos_restore_snapshot` - Restore saved state
   - Snapshot restore with fade option
 
