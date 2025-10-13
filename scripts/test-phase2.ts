@@ -36,11 +36,11 @@ async function callToolSafe(toolCall: any): Promise<any> {
     if (mockMode) {
         // Return mock data based on tool name
         const toolName = toolCall.name;
-        
+
         if (toolName === 'sonos_join_group' || toolName === 'sonos_unjoin') {
             return { success: true };
         }
-        
+
         if (toolName.includes('browse') || toolName === 'sonos_search_library') {
             return {
                 items: [
@@ -51,10 +51,10 @@ async function callToolSafe(toolCall: any): Promise<any> {
                 returned: 2,
             };
         }
-        
+
         return { success: true };
     }
-    
+
     return await callTool(mcpProcess, toolCall);
 }
 
@@ -87,7 +87,7 @@ async function initializeAndDiscover(): Promise<void> {
 
     // Check for manual device IP via environment variable
     const manualIp = process.env.SONOS_DEVICE_IP;
-    
+
     if (manualIp) {
         console.log(`📍 Using manual device IP: ${manualIp}\n`);
         // Register the device manually
@@ -101,10 +101,10 @@ async function initializeAndDiscover(): Promise<void> {
     }
 
     console.log('🔍 Discovering Sonos devices...\n');
-    
+
     // Check if mock mode is enabled via environment variable
     mockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
-    
+
     if (mockMode) {
         console.log('⚠️  Running in MOCK MODE (no real devices required)\n');
         devices = [
@@ -128,7 +128,7 @@ async function initializeAndDiscover(): Promise<void> {
         console.log();
         return;
     }
-    
+
     devices = await discoverDevices(mcpProcess);
 
     if (devices.length === 0) {
@@ -161,6 +161,8 @@ async function testGroupManagement(): Promise<void> {
 
     const device1 = devices[0].uuid || devices[0].ip;
     const device2 = devices[1].uuid || devices[1].ip;
+    const device1Name = devices[0].name || devices[0].ip || device1;
+    const device2Name = devices[1].name || devices[1].ip || device2;
 
     // Test: Join Group
     await runTest('Join Group', async () => {
@@ -172,7 +174,7 @@ async function testGroupManagement(): Promise<void> {
             },
         });
 
-        console.log(`   ${devices[1].name} joined ${devices[0].name}'s group`);
+        console.log(`   ${device2Name} joined ${device1Name}'s group`);
     });
 
     await wait(2000); // Allow time for group to form
@@ -184,7 +186,7 @@ async function testGroupManagement(): Promise<void> {
             arguments: { deviceId: device2 },
         });
 
-        console.log(`   ${devices[1].name} is now standalone`);
+        console.log(`   ${device2Name} is now standalone`);
     });
 }
 
@@ -402,7 +404,7 @@ async function cleanup(): Promise<void> {
 async function main(): Promise<void> {
     const isMockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
     const modeIndicator = isMockMode ? ' (MOCK MODE)' : '';
-    
+
     console.log('╔══════════════════════════════════════════╗');
     console.log(`║     Phase 2 API Test Suite${modeIndicator.padEnd(15)}║`);
     console.log('║  Groups & Music Library Browsing         ║');

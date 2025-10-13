@@ -1723,7 +1723,11 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${result.total} artists (showing ${result.returned}):\n\n${JSON.stringify(artists, null, 2)}`,
+                    text: JSON.stringify({
+                        items: artists,
+                        total: result.total,
+                        returned: result.returned,
+                    }),
                 },
             ],
         };
@@ -1750,7 +1754,11 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${result.total} albums (showing ${result.returned}):\n\n${JSON.stringify(albums, null, 2)}`,
+                    text: JSON.stringify({
+                        items: albums,
+                        total: result.total,
+                        returned: result.returned,
+                    }),
                 },
             ],
         };
@@ -1778,7 +1786,11 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${result.total} tracks (showing ${result.returned}):\n\n${JSON.stringify(tracks, null, 2)}`,
+                    text: JSON.stringify({
+                        items: tracks,
+                        total: result.total,
+                        returned: result.returned,
+                    }),
                 },
             ],
         };
@@ -1804,7 +1816,11 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${result.total} genres (showing ${result.returned}):\n\n${JSON.stringify(genres, null, 2)}`,
+                    text: JSON.stringify({
+                        items: genres,
+                        total: result.total,
+                        returned: result.returned,
+                    }),
                 },
             ],
         };
@@ -1830,7 +1846,11 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${result.total} playlists (showing ${result.returned}):\n\n${JSON.stringify(playlists, null, 2)}`,
+                    text: JSON.stringify({
+                        items: playlists,
+                        total: result.total,
+                        returned: result.returned,
+                    }),
                 },
             ],
         };
@@ -1860,7 +1880,13 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Search for "${searchTerm}" in ${searchType} found ${result.total} results (showing ${result.returned}):\n\n${JSON.stringify(items, null, 2)}`,
+                    text: JSON.stringify({
+                        items,
+                        total: result.total,
+                        returned: result.returned,
+                        searchTerm,
+                        searchType,
+                    }),
                 },
             ],
         };
@@ -1890,7 +1916,12 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Browsing ${objectId} found ${result.total} items (showing ${result.returned}):\n\n${JSON.stringify(items, null, 2)}`,
+                    text: JSON.stringify({
+                        items,
+                        total: result.total,
+                        returned: result.returned,
+                        objectId,
+                    }),
                 },
             ],
         };
