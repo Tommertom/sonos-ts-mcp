@@ -81,7 +81,29 @@ npm run lint           # ESLint
 npm run format         # Prettier
 npm test               # Run tests
 npm run test:discovery # Test Sonos device discovery
+npm run test:phase1    # Test Phase 1 APIs (Queue, Playback)
+npm run test:phase2    # Test Phase 2 APIs (Groups, Library)
+npm run test:phase3    # Test Phase 3 APIs (Audio, Alarms)
+npm run test:phase4    # Test Phase 4 APIs (Events)
+npm run test:all-phases # Run all phase tests
 ```
+
+### Testing
+
+Comprehensive API test scripts are available for all implemented features:
+
+```bash
+# Run all tests
+npm run test:all-phases
+
+# Or run individual phase tests
+npm run test:phase1  # Queue, DIDL, Playback Properties
+npm run test:phase2  # Groups & Music Library Browsing
+npm run test:phase3  # Audio, Alarms, Snapshots
+npm run test:phase4  # Event Subscriptions
+```
+
+See the [API Testing Guide](./docs/api-testing-guide.md) for detailed documentation on the test suite.
 
 ## Available Tools
 
@@ -229,11 +251,13 @@ The server will test connectivity to the device before adding it to the registry
 
 ## Documentation
 
+- 📖 [API Testing Guide](./docs/api-testing-guide.md) - Comprehensive test suite documentation ✨ NEW
 - 📖 [Quick Reference](./docs/quick-reference.md) - Feature status at a glance
 - 📊 [SoCo Feature Comparison](./docs/soco-comparison.md) - Detailed feature comparison with SoCo
 - 🗺️ [Implementation Roadmap](./docs/implementation-roadmap.md) - Phased expansion plan
 - 📋 [Executive Summary](./docs/soco-analysis-summary.md) - High-level overview
 - 🏗️ [Technical Architecture](./docs/technical-architecture.md) - System design details
+- 📚 [Phase Completion Docs](./docs/) - PHASE-1-COMPLETE.md through PHASE-4-COMPLETE.md
 
 ## Contributing
 

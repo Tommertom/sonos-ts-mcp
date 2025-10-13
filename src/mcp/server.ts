@@ -16,6 +16,7 @@ import { AlarmClockService } from '../services/alarm-clock.js';
 import { SnapshotService } from '../services/snapshot.js';
 import { SoapClient } from '../soap/client.js';
 import { RequestBuilder } from '../soap/request-builder.js';
+import { DidlObject } from '../didl/didl-object.js';
 
 export class SonosMcpServer {
     private server: Server;
@@ -1126,11 +1127,16 @@ export class SonosMcpServer {
             this.registry.addFromDiscovery(response);
         }
 
+        const devices = this.registry.getAllDevices();
+
         return {
             content: [
                 {
                     type: 'text',
-                    text: `Discovered ${responses.length} Sonos device(s)`,
+                    text: JSON.stringify({
+                        message: `Discovered ${responses.length} Sonos device(s)`,
+                        devices: devices,
+                    }, null, 2),
                 },
             ],
         };
@@ -1395,19 +1401,28 @@ export class SonosMcpServer {
         const { deviceId, uri, metadata, position, playNext = false } = args as {
             deviceId: string;
             uri: string;
-            metadata?: string;
+            metadata?: unknown;
             position?: number;
             playNext?: boolean;
         };
         const device = this.getDevice(deviceId);
         const service = new AVTransportService(device);
-        const trackNumber = await service.addToQueue({ uri, metadata, position, playNext });
+        // metadata can be a plain object, string, or DidlObject - the service handles all cases
+        const trackNumber = await service.addToQueue({
+            uri,
+            metadata: metadata as string | DidlObject | undefined,
+            position,
+            playNext
+        });
 
         return {
             content: [
                 {
                     type: 'text',
-                    text: `Added to queue at position ${trackNumber}`,
+                    text: JSON.stringify({
+                        position: trackNumber,
+                        message: `Added to queue at position ${trackNumber}`,
+                    }),
                 },
             ],
         };
@@ -1475,7 +1490,11 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Queue saved as playlist "${title}" (ID: ${playlistId})`,
+                    text: JSON.stringify({
+                        objectId: playlistId,
+                        title,
+                        message: `Queue saved as playlist "${title}" (ID: ${playlistId})`,
+                    }),
                 },
             ],
         };
