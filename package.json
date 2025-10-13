@@ -15,6 +15,11 @@
     "test:coverage": "vitest run --coverage",
     "test:discovery": "tsx scripts/test-discovery.ts",
     "test:events": "tsx scripts/test-events.ts",
+    "test:phase1": "tsx scripts/test-phase1.ts",
+    "test:phase2": "tsx scripts/test-phase2.ts",
+    "test:phase3": "tsx scripts/test-phase3.ts",
+    "test:phase4": "tsx scripts/test-phase4.ts",
+    "test:all-phases": "tsx scripts/test-all-phases.ts",
     "lint": "eslint src tests",
     "format": "prettier --write src tests",
     "typecheck": "tsc --noEmit"

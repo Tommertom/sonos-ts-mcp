@@ -349,7 +349,26 @@ export class AVTransportService extends BaseService {
             if (typeof options.metadata === 'string') {
                 metadata = options.metadata;
             } else {
-                metadata = toDidlString(options.metadata);
+                // If it's a plain object without required DIDL fields, create a proper DidlObject
+                if (!options.metadata.id || !options.metadata.parentId) {
+                    const { DidlMusicTrack } = await import('../didl/didl-item.js');
+                    const plainObj = options.metadata as unknown as Record<string, unknown>;
+                    const track = new DidlMusicTrack({
+                        id: '-1',
+                        parentId: '-1',
+                        title: (plainObj.title as string) || 'Unknown',
+                        restricted: true,
+                    });
+
+                    // Copy properties from the plain object
+                    if (plainObj.artist) track.artist = plainObj.artist as string;
+                    if (plainObj.album) track.album = plainObj.album as string;
+                    if (plainObj.albumArtUri) track.albumArtUri = plainObj.albumArtUri as string;
+
+                    metadata = toDidlString(track);
+                } else {
+                    metadata = toDidlString(options.metadata);
+                }
             }
         }
 

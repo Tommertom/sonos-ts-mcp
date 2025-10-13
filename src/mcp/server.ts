@@ -16,6 +16,8 @@ import { AlarmClockService } from '../services/alarm-clock.js';
 import { SnapshotService } from '../services/snapshot.js';
 import { SoapClient } from '../soap/client.js';
 import { RequestBuilder } from '../soap/request-builder.js';
+import { DidlObject } from '../didl/didl-object.js';
+import { getDefaultManager } from '../events/subscription-manager.js';
 
 export class SonosMcpServer {
     private server: Server;
@@ -974,6 +976,77 @@ export class SonosMcpServer {
                         required: ['deviceId'],
                     },
                 },
+                // Phase 4 Features - Event Subscriptions
+                {
+                    name: 'sonos_subscribe_events',
+                    description: 'Subscribe to real-time events from a Sonos device service (AVTransport, RenderingControl, etc.)',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            service: {
+                                type: 'string',
+                                description: 'Service name to subscribe to',
+                                enum: ['AVTransport', 'RenderingControl', 'Queue', 'ZoneGroupTopology', 'AlarmClock'],
+                            },
+                            timeout: {
+                                type: 'number',
+                                description: 'Subscription timeout in seconds (default: 1800 = 30 minutes)',
+                                default: 1800,
+                            },
+                        },
+                        required: ['deviceId', 'service'],
+                    },
+                },
+                {
+                    name: 'sonos_unsubscribe_events',
+                    description: 'Unsubscribe from a specific event subscription',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            subscriptionId: {
+                                type: 'string',
+                                description: 'Subscription ID (SID) to unsubscribe from',
+                            },
+                        },
+                        required: ['deviceId', 'subscriptionId'],
+                    },
+                },
+                {
+                    name: 'sonos_unsubscribe_all',
+                    description: 'Unsubscribe from all event subscriptions for a specific device',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_list_subscriptions',
+                    description: 'List all active event subscriptions for a device',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
             ],
         }));
 
@@ -1091,6 +1164,15 @@ export class SonosMcpServer {
                 // Phase 3 - Party Mode
                 case 'sonos_party_mode':
                     return await this.handlePartyMode(args);
+                // Phase 4 - Event Subscriptions
+                case 'sonos_subscribe_events':
+                    return await this.handleSubscribeEvents(args);
+                case 'sonos_unsubscribe_events':
+                    return await this.handleUnsubscribeEvents(args);
+                case 'sonos_unsubscribe_all':
+                    return await this.handleUnsubscribeAll(args);
+                case 'sonos_list_subscriptions':
+                    return await this.handleListSubscriptions(args);
                 default:
                     return {
                         content: [
@@ -1126,11 +1208,16 @@ export class SonosMcpServer {
             this.registry.addFromDiscovery(response);
         }
 
+        const devices = this.registry.getAllDevices();
+
         return {
             content: [
                 {
                     type: 'text',
-                    text: `Discovered ${responses.length} Sonos device(s)`,
+                    text: JSON.stringify({
+                        message: `Discovered ${responses.length} Sonos device(s)`,
+                        devices: devices,
+                    }, null, 2),
                 },
             ],
         };
@@ -1395,19 +1482,28 @@ export class SonosMcpServer {
         const { deviceId, uri, metadata, position, playNext = false } = args as {
             deviceId: string;
             uri: string;
-            metadata?: string;
+            metadata?: unknown;
             position?: number;
             playNext?: boolean;
         };
         const device = this.getDevice(deviceId);
         const service = new AVTransportService(device);
-        const trackNumber = await service.addToQueue({ uri, metadata, position, playNext });
+        // metadata can be a plain object, string, or DidlObject - the service handles all cases
+        const trackNumber = await service.addToQueue({
+            uri,
+            metadata: metadata as string | DidlObject | undefined,
+            position,
+            playNext
+        });
 
         return {
             content: [
                 {
                     type: 'text',
-                    text: `Added to queue at position ${trackNumber}`,
+                    text: JSON.stringify({
+                        position: trackNumber,
+                        message: `Added to queue at position ${trackNumber}`,
+                    }),
                 },
             ],
         };
@@ -1475,7 +1571,11 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Queue saved as playlist "${title}" (ID: ${playlistId})`,
+                    text: JSON.stringify({
+                        objectId: playlistId,
+                        title,
+                        message: `Queue saved as playlist "${title}" (ID: ${playlistId})`,
+                    }),
                 },
             ],
         };
@@ -1956,7 +2056,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${alarms.length} alarm(s):\n\n${JSON.stringify(alarms, null, 2)}`,
+                    text: JSON.stringify({ alarms }, null, 2),
                 },
             ],
         };
@@ -1985,7 +2085,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Alarm created with ID: ${alarmId}`,
+                    text: JSON.stringify({ alarmId }, null, 2),
                 },
             ],
         };
@@ -2008,7 +2108,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Alarm ${alarmId} updated`,
+                    text: JSON.stringify({ success: true, alarmId }, null, 2),
                 },
             ],
         };
@@ -2024,7 +2124,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Alarm ${alarmId} deleted`,
+                    text: JSON.stringify({ success: true, alarmId }, null, 2),
                 },
             ],
         };
@@ -2041,7 +2141,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Snapshot taken:\n\n${JSON.stringify(snapshot, null, 2)}`,
+                    text: JSON.stringify({ snapshot }, null, 2),
                 },
             ],
         };
@@ -2062,7 +2162,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: 'Snapshot restored',
+                    text: JSON.stringify({ success: true }, null, 2),
                 },
             ],
         };
@@ -2110,10 +2210,132 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Party mode activated! Joined ${joinedDevices.length} device(s)`,
+                    text: JSON.stringify({ success: true, joinedDevices }, null, 2),
                 },
             ],
         };
+    }
+
+    // Phase 4 Handlers - Event Subscriptions
+    private async handleSubscribeEvents(args: unknown) {
+        const { deviceId, service, timeout = 1800 } = args as {
+            deviceId: string;
+            service: string;
+            timeout?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const manager = getDefaultManager();
+
+        // Map service names to endpoints
+        const serviceEndpoints: Record<string, string> = {
+            'AVTransport': '/MediaRenderer/AVTransport/Event',
+            'RenderingControl': '/MediaRenderer/RenderingControl/Event',
+            'Queue': '/MediaRenderer/Queue/Event',
+            'ZoneGroupTopology': '/ZoneGroupTopology/Event',
+            'AlarmClock': '/AlarmClock/Event',
+        };
+
+        const endpoint = serviceEndpoints[service];
+        if (!endpoint) {
+            throw new Error(`Unknown service: ${service}. Valid services: ${Object.keys(serviceEndpoints).join(', ')}`);
+        }
+
+        // Subscribe to events
+        const subscriptionId = await manager.subscribe(device, endpoint, { timeout });
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify({
+                        subscriptionId,
+                        service,
+                        endpoint,
+                        timeout,
+                        message: `Subscribed to ${service} events`,
+                    }, null, 2),
+                },
+            ],
+        };
+    }
+
+    private async handleUnsubscribeEvents(args: unknown) {
+        const { deviceId, subscriptionId } = args as {
+            deviceId: string;
+            subscriptionId: string;
+        };
+        const device = this.getDevice(deviceId);
+        const manager = getDefaultManager();
+
+        await manager.unsubscribe(device, subscriptionId);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Unsubscribed from subscription: ${subscriptionId}`,
+                },
+            ],
+        };
+    }
+
+    private async handleUnsubscribeAll(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const manager = getDefaultManager();
+
+        await manager.unsubscribeDevice(device);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Unsubscribed from all events for device: ${device.name || deviceId}`,
+                },
+            ],
+        };
+    }
+
+    private async handleListSubscriptions(args: unknown) {
+        const { deviceId } = args as { deviceId: string };
+        const device = this.getDevice(deviceId);
+        const manager = getDefaultManager();
+
+        const deviceIdKey = device.uuid || device.ip;
+        const subscriptions = manager.getDeviceSubscriptions(deviceIdKey);
+
+        const subscriptionList = subscriptions.map(sub => ({
+            subscriptionId: sub.sid,
+            endpoint: sub.endpoint,
+            service: this.endpointToServiceName(sub.endpoint),
+            timeout: sub.timeout,
+            renewAt: sub.renewAt,
+        }));
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify({
+                        deviceId: deviceIdKey,
+                        subscriptions: subscriptionList,
+                        count: subscriptions.length,
+                    }, null, 2),
+                },
+            ],
+        };
+    }
+
+    /**
+     * Helper to convert endpoint to service name
+     */
+    private endpointToServiceName(endpoint: string): string {
+        if (endpoint.includes('AVTransport')) return 'AVTransport';
+        if (endpoint.includes('RenderingControl')) return 'RenderingControl';
+        if (endpoint.includes('Queue')) return 'Queue';
+        if (endpoint.includes('ZoneGroupTopology')) return 'ZoneGroupTopology';
+        if (endpoint.includes('AlarmClock')) return 'AlarmClock';
+        return 'Unknown';
     }
 
     async run(): Promise<void> {
