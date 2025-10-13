@@ -2,6 +2,8 @@
 
 A Model Context Protocol (MCP) server for controlling Sonos audio devices over the local network using UPnP/SOAP.
 
+> **📊 Feature Status**: Phase 1 complete! Implements DIDL-Lite metadata, queue management, and playback properties. See [Phase 1 completion](./docs/PHASE-1-COMPLETE.md) for details.
+
 ## Features
 
 - **Device Discovery**: Automatic SSDP-based discovery of Sonos devices
@@ -9,8 +11,25 @@ A Model Context Protocol (MCP) server for controlling Sonos audio devices over t
 - **Volume Control**: Get and set volume levels, mute/unmute
 - **Transport Info**: Get current playback state and track information
 - **Zone Topology**: Query zone groups and speaker configurations
+- **Queue Management**: Full queue control (add, remove, reorder, save, play)
+- **DIDL-Lite Support**: Complete metadata handling for tracks, albums, and containers
+- **Playback Properties**: Shuffle, repeat, and crossfade controls
 - **Pure TypeScript**: Built from scratch without external Sonos libraries
 - **MCP Compatible**: Integrates with any MCP-compatible client
+
+### Planned Features
+
+This project is actively expanding to match the comprehensive feature set of the Python SoCo library:
+
+- 🚧 Group management (join, unjoin, party mode)
+- 🟠 Playlist management (create, edit, delete playlists)
+- 🟠 Music library browsing (artists, albums, tracks)
+- 🟡 Event subscriptions (real-time updates)
+- 🟡 Alarm configuration
+- 🟢 Snapshot/restore state
+- 🟢 Home theater controls
+
+See the [implementation roadmap](./docs/implementation-roadmap.md) for the complete expansion plan.
 
 ## Installation
 
@@ -18,6 +37,16 @@ A Model Context Protocol (MCP) server for controlling Sonos audio devices over t
 npm install
 npm run build
 ```
+
+### Test Discovery
+
+After installation, you can test if your Sonos devices can be discovered:
+
+```bash
+npm run test:discovery
+```
+
+This will perform an SSDP multicast search and display any Sonos devices found on your network.
 
 ## Usage
 
@@ -39,12 +68,13 @@ Add to your MCP client configuration:
 ### Development
 
 ```bash
-npm run dev        # Run with tsx (hot reload)
-npm run build      # Compile TypeScript
-npm run typecheck  # Type checking only
-npm run lint       # ESLint
-npm run format     # Prettier
-npm test           # Run tests
+npm run dev            # Run with tsx (hot reload)
+npm run build          # Compile TypeScript
+npm run typecheck      # Type checking only
+npm run lint           # ESLint
+npm run format         # Prettier
+npm test               # Run tests
+npm run test:discovery # Test Sonos device discovery
 ```
 
 ## Available Tools
@@ -66,6 +96,20 @@ npm test           # Run tests
 - `sonos_get_volume` - Get current volume
 - `sonos_set_mute` - Mute or unmute
 
+### Queue Management
+- `sonos_get_queue` - Get the current playback queue
+- `sonos_add_to_queue` - Add a URI to the queue
+- `sonos_remove_from_queue` - Remove a track from the queue
+- `sonos_clear_queue` - Remove all tracks from the queue
+- `sonos_play_from_queue` - Play from a specific queue position
+- `sonos_save_queue` - Save the queue as a Sonos playlist
+
+### Playback Properties
+- `sonos_set_shuffle` - Enable or disable shuffle mode
+- `sonos_set_repeat` - Set repeat mode (off, all, one)
+- `sonos_set_crossfade` - Enable or disable crossfade
+- `sonos_get_playback_state` - Get shuffle, repeat, crossfade, and playback state
+
 ### Information
 - `sonos_get_transport_info` - Get playback state
 - `sonos_get_position_info` - Get current track details
@@ -78,6 +122,14 @@ src/
 ├── discovery/         # SSDP device discovery
 │   ├── ssdp-client.ts
 │   └── device-registry.ts
+├── didl/             # DIDL-Lite metadata handling
+│   ├── didl-object.ts
+│   ├── didl-resource.ts
+│   ├── didl-item.ts
+│   ├── didl-container.ts
+│   ├── didl-serializer.ts
+│   ├── didl-parser.ts
+│   └── index.ts
 ├── soap/             # SOAP/UPnP transport layer
 │   ├── client.ts
 │   ├── request-builder.ts
@@ -90,7 +142,8 @@ src/
 ├── mcp/             # MCP server implementation
 │   └── server.ts
 └── types/           # TypeScript definitions
-    └── sonos.ts
+    ├── sonos.ts
+    └── queue.ts
 ```
 
 ## Protocol Details
@@ -127,6 +180,25 @@ The server will test connectivity to the device before adding it to the registry
 - HTTP POST to `http://{ip}:1400/...`
 - XML-based SOAP envelopes
 - Supports all standard Sonos UPnP services
+
+## Documentation
+
+- 📖 [Quick Reference](./docs/quick-reference.md) - Feature status at a glance
+- 📊 [SoCo Feature Comparison](./docs/soco-comparison.md) - Detailed feature comparison with SoCo
+- 🗺️ [Implementation Roadmap](./docs/implementation-roadmap.md) - Phased expansion plan
+- 📋 [Executive Summary](./docs/soco-analysis-summary.md) - High-level overview
+- 🏗️ [Technical Architecture](./docs/technical-architecture.md) - System design details
+
+## Contributing
+
+Contributions are welcome! This project is expanding to provide comprehensive Sonos control. See the [roadmap](./docs/implementation-roadmap.md) for planned features.
+
+Areas where contributions are especially valuable:
+- Implementing additional UPnP services
+- Adding DIDL-Lite object model
+- Event subscription system
+- Test coverage expansion
+- Documentation improvements
 
 ## License
 

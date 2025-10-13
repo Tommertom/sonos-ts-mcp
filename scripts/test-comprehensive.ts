@@ -11,9 +11,9 @@
  * 6. All core functionality working with real Sonos hardware
  */
 
-import { DeviceRegistry } from './src/discovery/device-registry.js';
-import { AVTransportService } from './src/services/av-transport.js';
-import { RenderingControlService } from './src/services/rendering-control.js';
+import { DeviceRegistry } from '../src/discovery/device-registry.js';
+import { AVTransportService } from '../src/services/av-transport.js';
+import { RenderingControlService } from '../src/services/rendering-control.js';
 
 const KITCHEN_IP = '192.168.178.149';
 

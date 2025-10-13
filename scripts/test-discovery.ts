@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { SsdpClient } from './src/discovery/ssdp-client.js';
-import { DeviceRegistry } from './src/discovery/device-registry.js';
-import { AVTransportService } from './src/services/av-transport.js';
+import { SsdpClient } from '../src/discovery/ssdp-client.js';
+import { DeviceRegistry } from '../src/discovery/device-registry.js';
+import { AVTransportService } from '../src/services/av-transport.js';
 
 async function testDiscovery() {
     console.log('Starting Sonos device discovery...\n');

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { SoapClient } from './src/soap/client.js';
-import { RequestBuilder } from './src/soap/request-builder.js';
-import { XmlParser } from './src/soap/response-parser.js';
+import { SoapClient } from '../src/soap/client.js';
+import { RequestBuilder } from '../src/soap/request-builder.js';
+import { XmlParser } from '../src/soap/response-parser.js';
 
 const KITCHEN_IP = '192.168.178.149';
 

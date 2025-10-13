@@ -247,6 +247,198 @@ export class SonosMcpServer {
                         required: ['deviceId'],
                     },
                 },
+                {
+                    name: 'sonos_get_queue',
+                    description: 'Get the current playback queue',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            startIndex: {
+                                type: 'number',
+                                description: 'Starting index (0-based, default: 0)',
+                                default: 0,
+                            },
+                            count: {
+                                type: 'number',
+                                description: 'Number of tracks to retrieve (default: 100)',
+                                default: 100,
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_add_to_queue',
+                    description: 'Add a URI to the playback queue',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            uri: {
+                                type: 'string',
+                                description: 'URI to add to queue (e.g., x-file-cifs://..., x-sonos-spotify:...)',
+                            },
+                            metadata: {
+                                type: 'string',
+                                description: 'Optional DIDL-Lite metadata XML',
+                            },
+                            position: {
+                                type: 'number',
+                                description: 'Insert at specific position (1-based), or append if not specified',
+                            },
+                            playNext: {
+                                type: 'boolean',
+                                description: 'Play this track next',
+                                default: false,
+                            },
+                        },
+                        required: ['deviceId', 'uri'],
+                    },
+                },
+                {
+                    name: 'sonos_remove_from_queue',
+                    description: 'Remove a track from the queue',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            position: {
+                                type: 'number',
+                                description: 'Track position to remove (1-based)',
+                            },
+                        },
+                        required: ['deviceId', 'position'],
+                    },
+                },
+                {
+                    name: 'sonos_clear_queue',
+                    description: 'Remove all tracks from the queue',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
+                {
+                    name: 'sonos_play_from_queue',
+                    description: 'Play from the queue starting at a specific position',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            position: {
+                                type: 'number',
+                                description: 'Track position to start playing from (1-based)',
+                            },
+                        },
+                        required: ['deviceId', 'position'],
+                    },
+                },
+                {
+                    name: 'sonos_save_queue',
+                    description: 'Save the current queue as a Sonos playlist',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            title: {
+                                type: 'string',
+                                description: 'Playlist title',
+                            },
+                        },
+                        required: ['deviceId', 'title'],
+                    },
+                },
+                {
+                    name: 'sonos_set_shuffle',
+                    description: 'Enable or disable shuffle mode',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            shuffle: {
+                                type: 'boolean',
+                                description: 'Enable shuffle',
+                            },
+                        },
+                        required: ['deviceId', 'shuffle'],
+                    },
+                },
+                {
+                    name: 'sonos_set_repeat',
+                    description: 'Set repeat mode',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            mode: {
+                                type: 'string',
+                                description: 'Repeat mode',
+                                enum: ['off', 'all', 'one'],
+                            },
+                        },
+                        required: ['deviceId', 'mode'],
+                    },
+                },
+                {
+                    name: 'sonos_set_crossfade',
+                    description: 'Enable or disable crossfade',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                            enabled: {
+                                type: 'boolean',
+                                description: 'Enable crossfade',
+                            },
+                        },
+                        required: ['deviceId', 'enabled'],
+                    },
+                },
+                {
+                    name: 'sonos_get_playback_state',
+                    description: 'Get current playback state including shuffle, repeat, and crossfade',
+                    inputSchema: {
+                        type: 'object',
+                        properties: {
+                            deviceId: {
+                                type: 'string',
+                                description: 'Device UUID or IP address',
+                            },
+                        },
+                        required: ['deviceId'],
+                    },
+                },
             ],
         }));
 
@@ -289,6 +481,26 @@ export class SonosMcpServer {
                     return await this.handleGetPositionInfo(args);
                 case 'sonos_get_zone_groups':
                     return await this.handleGetZoneGroups(args);
+                case 'sonos_get_queue':
+                    return await this.handleGetQueue(args);
+                case 'sonos_add_to_queue':
+                    return await this.handleAddToQueue(args);
+                case 'sonos_remove_from_queue':
+                    return await this.handleRemoveFromQueue(args);
+                case 'sonos_clear_queue':
+                    return await this.handleClearQueue(args);
+                case 'sonos_play_from_queue':
+                    return await this.handlePlayFromQueue(args);
+                case 'sonos_save_queue':
+                    return await this.handleSaveQueue(args);
+                case 'sonos_set_shuffle':
+                    return await this.handleSetShuffle(args);
+                case 'sonos_set_repeat':
+                    return await this.handleSetRepeat(args);
+                case 'sonos_set_crossfade':
+                    return await this.handleSetCrossfade(args);
+                case 'sonos_get_playback_state':
+                    return await this.handleGetPlaybackState(args);
                 default:
                     return {
                         content: [
@@ -564,6 +776,198 @@ export class SonosMcpServer {
                 {
                     type: 'text',
                     text: groups ? JSON.stringify(groups, null, 2) : 'Failed to get zone groups',
+                },
+            ],
+        };
+    }
+
+    private async handleGetQueue(args: unknown) {
+        const { deviceId, startIndex = 0, count = 100 } = args as {
+            deviceId: string;
+            startIndex?: number;
+            count?: number;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const queue = await service.getQueue(startIndex, count);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify(queue, null, 2),
+                },
+            ],
+        };
+    }
+
+    private async handleAddToQueue(args: unknown) {
+        const { deviceId, uri, metadata, position, playNext = false } = args as {
+            deviceId: string;
+            uri: string;
+            metadata?: string;
+            position?: number;
+            playNext?: boolean;
+        };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const trackNumber = await service.addToQueue({ uri, metadata, position, playNext });
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Added to queue at position ${trackNumber}`,
+                },
+            ],
+        };
+    }
+
+    private async handleRemoveFromQueue(args: unknown) {
+        const { deviceId, position } = args as { deviceId: string; position: number };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const success = await service.removeFromQueue(position);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success
+                        ? `Removed track at position ${position}`
+                        : 'Failed to remove track from queue',
+                },
+            ],
+        };
+    }
+
+    private async handleClearQueue(args: unknown) {
+        const deviceId = (args as { deviceId: string }).deviceId;
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const success = await service.removeAllTracksFromQueue();
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success ? 'Queue cleared' : 'Failed to clear queue',
+                },
+            ],
+        };
+    }
+
+    private async handlePlayFromQueue(args: unknown) {
+        const { deviceId, position } = args as { deviceId: string; position: number };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const success = await service.playFromQueue(position);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success
+                        ? `Playing from queue position ${position}`
+                        : 'Failed to play from queue',
+                },
+            ],
+        };
+    }
+
+    private async handleSaveQueue(args: unknown) {
+        const { deviceId, title } = args as { deviceId: string; title: string };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const playlistId = await service.saveQueue(title);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Queue saved as playlist "${title}" (ID: ${playlistId})`,
+                },
+            ],
+        };
+    }
+
+    private async handleSetShuffle(args: unknown) {
+        const { deviceId, shuffle } = args as { deviceId: string; shuffle: boolean };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const success = await service.setShuffle(shuffle);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success
+                        ? `Shuffle ${shuffle ? 'enabled' : 'disabled'}`
+                        : 'Failed to set shuffle',
+                },
+            ],
+        };
+    }
+
+    private async handleSetRepeat(args: unknown) {
+        const { deviceId, mode } = args as { deviceId: string; mode: 'off' | 'all' | 'one' };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const success = await service.setRepeat(mode);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success ? `Repeat set to: ${mode}` : 'Failed to set repeat mode',
+                },
+            ],
+        };
+    }
+
+    private async handleSetCrossfade(args: unknown) {
+        const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+        const success = await service.setCrossFade(enabled);
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: success
+                        ? `Crossfade ${enabled ? 'enabled' : 'disabled'}`
+                        : 'Failed to set crossfade',
+                },
+            ],
+        };
+    }
+
+    private async handleGetPlaybackState(args: unknown) {
+        const deviceId = (args as { deviceId: string }).deviceId;
+        const device = this.getDevice(deviceId);
+        const service = new AVTransportService(device);
+
+        const [shuffle, repeat, crossfade, transportInfo] = await Promise.all([
+            service.getShuffle(),
+            service.getRepeat(),
+            service.getCrossFade(),
+            service.getTransportInfo(),
+        ]);
+
+        const state = {
+            shuffle,
+            repeat,
+            crossfade,
+            playbackState: transportInfo?.state,
+            speed: transportInfo?.speed,
+        };
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify(state, null, 2),
                 },
             ],
         };
