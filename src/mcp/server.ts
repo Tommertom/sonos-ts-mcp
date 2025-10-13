@@ -358,7 +358,7 @@ export class SonosMcpServer {
             throw new Error(`Cannot reach Sonos device at ${ip}:${port}`);
         }
 
-        const device = this.registry.addManualDevice(ip, port, name);
+        this.registry.addManualDevice(ip, port, name);
 
         return {
             content: [
