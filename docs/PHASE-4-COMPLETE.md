@@ -149,7 +149,87 @@ await avTransport.unsubscribe(sid);
 - `AlarmClockService` - Alarm list events
 - `ContentDirectoryService` - Library update events
 
-### 6. Test Script ✅
+### 6. MCP Server Tools ✅
+
+**New MCP Tools**: Added to `src/mcp/server.ts`
+
+Phase 4 event subscriptions are now fully exposed through the MCP server API:
+
+#### `sonos_subscribe_events`
+Subscribe to real-time events from a Sonos device service.
+
+**Parameters**:
+- `deviceId` (string, required): Device UUID or IP address
+- `service` (string, required): Service name - `AVTransport`, `RenderingControl`, `Queue`, `ZoneGroupTopology`, or `AlarmClock`
+- `timeout` (number, optional): Subscription timeout in seconds (default: 1800 = 30 minutes)
+
+**Returns**: Subscription ID (SID), endpoint, and confirmation message
+
+**Example**:
+```typescript
+{
+  "name": "sonos_subscribe_events",
+  "arguments": {
+    "deviceId": "192.168.1.100",
+    "service": "AVTransport",
+    "timeout": 1800
+  }
+}
+```
+
+#### `sonos_unsubscribe_events`
+Unsubscribe from a specific event subscription.
+
+**Parameters**:
+- `deviceId` (string, required): Device UUID or IP address
+- `subscriptionId` (string, required): Subscription ID (SID) from subscribe call
+
+**Example**:
+```typescript
+{
+  "name": "sonos_unsubscribe_events",
+  "arguments": {
+    "deviceId": "192.168.1.100",
+    "subscriptionId": "uuid:..."
+  }
+}
+```
+
+#### `sonos_unsubscribe_all`
+Unsubscribe from all event subscriptions for a specific device.
+
+**Parameters**:
+- `deviceId` (string, required): Device UUID or IP address
+
+**Example**:
+```typescript
+{
+  "name": "sonos_unsubscribe_all",
+  "arguments": {
+    "deviceId": "192.168.1.100"
+  }
+}
+```
+
+#### `sonos_list_subscriptions`
+List all active event subscriptions for a device.
+
+**Parameters**:
+- `deviceId` (string, required): Device UUID or IP address
+
+**Returns**: Array of active subscriptions with SID, endpoint, service name, timeout, and renewal time
+
+**Example**:
+```typescript
+{
+  "name": "sonos_list_subscriptions",
+  "arguments": {
+    "deviceId": "192.168.1.100"
+  }
+}
+```
+
+### 7. Test Script ✅
 
 **New Script**: `scripts/test-events.ts`
 
@@ -212,6 +292,67 @@ scripts/
 ```
 
 ## Usage Examples
+
+### Using MCP Tools (Recommended for MCP Clients)
+
+The easiest way to use Phase 4 event subscriptions is through the MCP server tools:
+
+```typescript
+// 1. Subscribe to AVTransport events
+const subscribeResult = await callTool({
+  name: 'sonos_subscribe_events',
+  arguments: {
+    deviceId: '192.168.1.100',
+    service: 'AVTransport'
+  }
+});
+// Returns: { subscriptionId: 'uuid:...', service: 'AVTransport', ... }
+
+// 2. Subscribe to RenderingControl events
+await callTool({
+  name: 'sonos_subscribe_events',
+  arguments: {
+    deviceId: '192.168.1.100',
+    service: 'RenderingControl',
+    timeout: 3600  // 1 hour
+  }
+});
+
+// 3. List active subscriptions
+const subscriptions = await callTool({
+  name: 'sonos_list_subscriptions',
+  arguments: {
+    deviceId: '192.168.1.100'
+  }
+});
+// Returns: { subscriptions: [...], count: 2 }
+
+// 4. Unsubscribe from specific subscription
+await callTool({
+  name: 'sonos_unsubscribe_events',
+  arguments: {
+    deviceId: '192.168.1.100',
+    subscriptionId: subscribeResult.subscriptionId
+  }
+});
+
+// 5. Unsubscribe from all device events
+await callTool({
+  name: 'sonos_unsubscribe_all',
+  arguments: {
+    deviceId: '192.168.1.100'
+  }
+});
+```
+
+**Available Services**:
+- `AVTransport` - Playback state, track info, queue changes
+- `RenderingControl` - Volume, mute, EQ settings
+- `Queue` - Queue modifications
+- `ZoneGroupTopology` - Group membership changes
+- `AlarmClock` - Alarm list updates
+
+### Using TypeScript API Directly
 
 ### Basic Event Subscription
 

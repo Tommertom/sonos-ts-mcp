@@ -175,6 +175,12 @@ See the [API Testing Guide](./docs/api-testing-guide.md) for detailed documentat
 - `sonos_snapshot` - Take a snapshot of device state
 - `sonos_restore_snapshot` - Restore from snapshot
 
+### Event Subscriptions (Phase 4 ✨ NEW)
+- `sonos_subscribe_events` - Subscribe to real-time device events (AVTransport, RenderingControl, Queue, ZoneGroupTopology, AlarmClock)
+- `sonos_unsubscribe_events` - Unsubscribe from a specific subscription
+- `sonos_unsubscribe_all` - Unsubscribe from all device subscriptions
+- `sonos_list_subscriptions` - List active event subscriptions
+
 ### Information
 - `sonos_get_transport_info` - Get playback state
 - `sonos_get_position_info` - Get current track details
