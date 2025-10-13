@@ -3,16 +3,17 @@ import type { SonosDevice, SonosDiscoveryResponse } from '../types/sonos.js';
 export class DeviceRegistry {
     private devices = new Map<string, SonosDevice>();
 
-    addManualDevice(ip: string, port = 1400, name?: string): SonosDevice {
-        const uuid = `MANUAL_${ip.replace(/\./g, '_')}`;
+    addManualDevice(ip: string, port = 1400, name?: string, uuid?: string): SonosDevice {
+        // Use provided UUID if available, otherwise create a fallback UUID
+        const deviceUuid = uuid ?? `MANUAL_${ip.replace(/\./g, '_')}`;
         const device: SonosDevice = {
-            uuid,
+            uuid: deviceUuid,
             ip,
             port,
             location: `http://${ip}:${port}/xml/device_description.xml`,
             name: name || `Sonos at ${ip}`,
         };
-        this.devices.set(uuid, device);
+        this.devices.set(deviceUuid, device);
         return device;
     }
 

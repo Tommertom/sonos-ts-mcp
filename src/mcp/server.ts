@@ -1247,13 +1247,31 @@ export class SonosMcpServer {
             throw new Error(`Cannot reach Sonos device at ${ip}:${port}`);
         }
 
-        this.registry.addManualDevice(ip, port, name);
+        // Fetch the device description to get the real UUID
+        let deviceUuid: string | undefined;
+        try {
+            const descriptionUrl = `http://${ip}:${port}/xml/device_description.xml`;
+            const descResponse = await fetch(descriptionUrl);
+            if (descResponse.ok) {
+                const xml = await descResponse.text();
+                // Extract UUID from <UDN>uuid:RINCON_xxxxx</UDN>
+                const udnMatch = /<UDN>uuid:([^<]+)<\/UDN>/i.exec(xml);
+                if (udnMatch) {
+                    deviceUuid = udnMatch[1];
+                }
+            }
+        } catch (error) {
+            // If we can't fetch the UUID, we'll use a fallback
+            console.warn(`Could not fetch device UUID for ${ip}:${port}`, error);
+        }
+
+        this.registry.addManualDevice(ip, port, name, deviceUuid);
 
         return {
             content: [
                 {
                     type: 'text',
-                    text: `Successfully added Sonos device at ${ip}`,
+                    text: `Successfully added Sonos device at ${ip}${deviceUuid ? ` (UUID: ${deviceUuid})` : ''}`,
                 },
             ],
         };

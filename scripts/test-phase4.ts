@@ -63,7 +63,7 @@ async function initializeAndDiscover(): Promise<void> {
         console.log(`📍 Using manual device IP: ${manualIp}\n`);
         // Register the device manually
         await callTool(mcpProcess, {
-            name: 'sonos_register_device',
+            name: 'sonos_add_device',
             arguments: { ip: manualIp, port: 1400 },
         });
         deviceId = manualIp;
