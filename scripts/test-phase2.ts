@@ -10,8 +10,15 @@
  * Usage:
  * - With device discovery: npm run test:phase2
  * - With manual device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase2
+<<<<<<< HEAD
  * 
  * Note: This test requires a real Sonos device on the network.
+=======
+ * - With mock mode (no real devices): npm run test:phase2 -- --mock
+ * - With mock mode (env var): MOCK_DEVICES=true npm run test:phase2
+ * 
+ * Note: This test can work with real devices, manual IP, or in mock mode.
+>>>>>>> origin/copilot/debug-test-phase2-script
  */
 
 import { spawn, type ChildProcess } from 'child_process';
@@ -25,6 +32,36 @@ import {
 
 let mcpProcess: ChildProcess;
 let devices: any[] = [];
+let mockMode = false;
+
+/**
+ * Helper function to call tools with mock support
+ */
+async function callToolSafe(toolCall: any): Promise<any> {
+    if (mockMode) {
+        // Return mock data based on tool name
+        const toolName = toolCall.name;
+        
+        if (toolName === 'sonos_join_group' || toolName === 'sonos_unjoin') {
+            return { success: true };
+        }
+        
+        if (toolName.includes('browse') || toolName === 'sonos_search_library') {
+            return {
+                items: [
+                    { id: 'mock-id-1', title: 'Mock Item 1', uri: 'x-mock://item1' },
+                    { id: 'mock-id-2', title: 'Mock Item 2', uri: 'x-mock://item2' },
+                ],
+                total: 42,
+                returned: 2,
+            };
+        }
+        
+        return { success: true };
+    }
+    
+    return await callTool(mcpProcess, toolCall);
+}
 
 async function startMcpServer(): Promise<void> {
     console.log('🚀 Starting MCP Server in stdio mode...\n');
@@ -69,13 +106,47 @@ async function initializeAndDiscover(): Promise<void> {
     }
 
     console.log('🔍 Discovering Sonos devices...\n');
+    
+    // Check if mock mode is enabled via environment variable
+    mockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+    
+    if (mockMode) {
+        console.log('⚠️  Running in MOCK MODE (no real devices required)\n');
+        devices = [
+            {
+                uuid: 'RINCON_MOCK001',
+                ip: '192.168.1.100',
+                name: 'Mock Sonos Device 1',
+                model: 'Mock Model',
+            },
+            {
+                uuid: 'RINCON_MOCK002',
+                ip: '192.168.1.101',
+                name: 'Mock Sonos Device 2',
+                model: 'Mock Model',
+            },
+        ];
+        console.log(`✅ Created ${devices.length} mock device(s):`);
+        devices.forEach((device, idx) => {
+            console.log(`   ${idx + 1}. ${device.name || device.ip} (${device.uuid || device.ip})`);
+        });
+        console.log();
+        return;
+    }
+    
     devices = await discoverDevices(mcpProcess);
 
     if (devices.length === 0) {
-        throw new Error(
-            'No Sonos devices found. Please ensure devices are on the network.\n' +
-            'Alternatively, set SONOS_DEVICE_IP environment variable to test with a specific device.'
-        );
+        console.log('\n⚠️  No Sonos devices found on the network.\n');
+        console.log('To run this test, you need:');
+        console.log('  1. At least one Sonos device powered on');
+        console.log('  2. This computer on the same network as the Sonos devices');
+        console.log('  3. Multicast enabled on your network\n');
+        console.log('Alternatively, you can:');
+        console.log('  • Use a specific device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase2');
+        console.log('  • Run in mock mode: npm run test:phase2 -- --mock');
+        console.log('  • Or use environment variable: MOCK_DEVICES=true npm run test:phase2\n');
+        throw new Error('No Sonos devices found. Please ensure devices are on the network, use SONOS_DEVICE_IP, or use --mock flag.');
     }
 
     console.log(`✅ Found ${devices.length} device(s):`);
@@ -98,7 +169,7 @@ async function testGroupManagement(): Promise<void> {
 
     // Test: Join Group
     await runTest('Join Group', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_join_group',
             arguments: {
                 deviceId: device2,
@@ -113,7 +184,7 @@ async function testGroupManagement(): Promise<void> {
 
     // Test: Unjoin (make standalone)
     await runTest('Unjoin from Group', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_unjoin',
             arguments: { deviceId: device2 },
         });
@@ -129,7 +200,7 @@ async function testMusicLibraryBrowsing(): Promise<void> {
 
     // Test: Browse Artists
     await runTest('Browse Artists', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_browse_artists',
             arguments: { deviceId, startIndex: 0, count: 10 },
         });
@@ -146,7 +217,7 @@ async function testMusicLibraryBrowsing(): Promise<void> {
 
     // Test: Browse Albums
     await runTest('Browse Albums', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_browse_albums',
             arguments: { deviceId, startIndex: 0, count: 10 },
         });
@@ -163,7 +234,7 @@ async function testMusicLibraryBrowsing(): Promise<void> {
 
     // Test: Browse Tracks
     await runTest('Browse Tracks', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_browse_tracks',
             arguments: { deviceId, startIndex: 0, count: 10 },
         });
@@ -180,7 +251,7 @@ async function testMusicLibraryBrowsing(): Promise<void> {
 
     // Test: Browse Genres
     await runTest('Browse Genres', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_browse_genres',
             arguments: { deviceId, startIndex: 0, count: 10 },
         });
@@ -197,7 +268,7 @@ async function testMusicLibraryBrowsing(): Promise<void> {
 
     // Test: Browse Playlists
     await runTest('Browse Playlists', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_browse_playlists',
             arguments: { deviceId, startIndex: 0, count: 10 },
         });
@@ -220,7 +291,7 @@ async function testContentDirectorySearch(): Promise<void> {
 
     // Test: Search for Artists
     await runTest('Search Artists', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_search_library',
             arguments: {
                 deviceId,
@@ -240,7 +311,7 @@ async function testContentDirectorySearch(): Promise<void> {
 
     // Test: Search for Albums
     await runTest('Search Albums', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_search_library',
             arguments: {
                 deviceId,
@@ -260,7 +331,7 @@ async function testContentDirectorySearch(): Promise<void> {
 
     // Test: Search for Tracks
     await runTest('Search Tracks', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_search_library',
             arguments: {
                 deviceId,
@@ -285,7 +356,7 @@ async function testBrowseItem(): Promise<void> {
     const deviceId = devices[0].uuid || devices[0].ip;
 
     // First get an artist to browse their albums
-    const artists = await callTool(mcpProcess, {
+    const artists = await callToolSafe({
         name: 'sonos_browse_artists',
         arguments: { deviceId, startIndex: 0, count: 1 },
     });
@@ -294,7 +365,7 @@ async function testBrowseItem(): Promise<void> {
         const artistId = artists.items[0].id;
 
         await runTest('Browse Artist Albums', async () => {
-            const result = await callTool(mcpProcess, {
+            const result = await callToolSafe({
                 name: 'sonos_browse_item',
                 arguments: {
                     deviceId,
@@ -334,8 +405,11 @@ async function cleanup(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+    const isMockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+    const modeIndicator = isMockMode ? ' (MOCK MODE)' : '';
+    
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║     Phase 2 API Test Suite               ║');
+    console.log(`║     Phase 2 API Test Suite${modeIndicator.padEnd(15)}║`);
     console.log('║  Groups & Music Library Browsing         ║');
     console.log('╚══════════════════════════════════════════╝\n');
 
