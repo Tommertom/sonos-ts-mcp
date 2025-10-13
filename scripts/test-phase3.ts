@@ -48,11 +48,29 @@ async function initializeAndDiscover(): Promise<void> {
     console.log('🔌 Initializing MCP connection...\n');
     await initializeMcpConnection(mcpProcess);
 
+    // Check for manual device IP via environment variable
+    const manualIp = process.env.SONOS_DEVICE_IP;
+    
+    if (manualIp) {
+        console.log(`📍 Using manual device IP: ${manualIp}\n`);
+        // Register the device manually
+        await callTool(mcpProcess, {
+            name: 'sonos_register_device',
+            arguments: { ip: manualIp, port: 1400 },
+        });
+        deviceId = manualIp;
+        console.log(`✅ Manually registered device: ${deviceId}\n`);
+        return;
+    }
+
     console.log('🔍 Discovering Sonos devices...\n');
     const devices = await discoverDevices(mcpProcess);
 
     if (devices.length === 0) {
-        throw new Error('No Sonos devices found. Please ensure devices are on the network.');
+        throw new Error(
+            'No Sonos devices found. Please ensure devices are on the network.\n' +
+            'Alternatively, set SONOS_DEVICE_IP environment variable to test with a specific device.'
+        );
     }
 
     deviceId = devices[0].uuid || devices[0].ip;

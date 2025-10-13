@@ -1975,7 +1975,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${alarms.length} alarm(s):\n\n${JSON.stringify(alarms, null, 2)}`,
+                    text: JSON.stringify({ alarms }, null, 2),
                 },
             ],
         };
@@ -2004,7 +2004,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Alarm created with ID: ${alarmId}`,
+                    text: JSON.stringify({ alarmId }, null, 2),
                 },
             ],
         };
@@ -2027,7 +2027,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Alarm ${alarmId} updated`,
+                    text: JSON.stringify({ success: true, alarmId }, null, 2),
                 },
             ],
         };
@@ -2043,7 +2043,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Alarm ${alarmId} deleted`,
+                    text: JSON.stringify({ success: true, alarmId }, null, 2),
                 },
             ],
         };
@@ -2060,7 +2060,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Snapshot taken:\n\n${JSON.stringify(snapshot, null, 2)}`,
+                    text: JSON.stringify({ snapshot }, null, 2),
                 },
             ],
         };
@@ -2081,7 +2081,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: 'Snapshot restored',
+                    text: JSON.stringify({ success: true }, null, 2),
                 },
             ],
         };
@@ -2129,7 +2129,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Party mode activated! Joined ${joinedDevices.length} device(s)`,
+                    text: JSON.stringify({ success: true, joinedDevices }, null, 2),
                 },
             ],
         };
