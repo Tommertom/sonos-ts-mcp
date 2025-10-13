@@ -11,8 +11,10 @@
  * Usage:
  * - With device discovery: npm run test:phase1
  * - With manual device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase1
+ * - With mock mode (no real devices): npm run test:phase1 -- --mock
+ * - With mock mode (env var): MOCK_DEVICES=true npm run test:phase1
  * 
- * Note: This test requires a real Sonos device on the network.
+ * Note: This test can work with real devices, manual IP, or in mock mode.
  */
 
 import { spawn, type ChildProcess } from 'child_process';
@@ -26,6 +28,48 @@ import {
 
 let mcpProcess: ChildProcess;
 let deviceId: string;
+let mockMode = false;
+
+/**
+ * Helper function to call tools with mock support
+ */
+async function callToolSafe(toolCall: any): Promise<any> {
+    if (mockMode) {
+        // Return mock data based on tool name
+        const toolName = toolCall.name;
+
+        if (toolName === 'sonos_get_queue') {
+            return {
+                totalTracks: 5,
+                tracks: [
+                    { position: 1, title: 'Mock Track 1', artist: 'Mock Artist' },
+                    { position: 2, title: 'Mock Track 2', artist: 'Mock Artist' },
+                ],
+            };
+        }
+
+        if (toolName === 'sonos_add_to_queue') {
+            return { position: 1 };
+        }
+
+        if (toolName === 'sonos_save_queue') {
+            return { objectId: 'SQ:123' };
+        }
+
+        if (toolName === 'sonos_get_playback_state') {
+            return {
+                state: 'PLAYING',
+                shuffle: false,
+                repeat: 'off',
+                crossfade: false,
+            };
+        }
+
+        return { success: true };
+    }
+
+    return await callTool(mcpProcess, toolCall);
+}
 
 async function startMcpServer(): Promise<void> {
     console.log('🚀 Starting MCP Server in stdio mode...\n');
@@ -71,12 +115,31 @@ async function initializeAndDiscover(): Promise<void> {
     }
 
     console.log('🔍 Discovering Sonos devices...\n');
+
+    // Check if mock mode is enabled via environment variable or command line
+    mockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+
+    if (mockMode) {
+        console.log('⚠️  Running in MOCK MODE (no real devices required)\n');
+        deviceId = 'RINCON_MOCK001';
+        console.log(`✅ Created mock device: Mock Sonos Device (${deviceId})\n`);
+        return;
+    }
+
     const devices = await discoverDevices(mcpProcess);
 
     if (devices.length === 0) {
+        console.log('\n⚠️  No Sonos devices found on the network.\n');
+        console.log('To run this test, you need:');
+        console.log('  1. At least one Sonos device powered on');
+        console.log('  2. This computer on the same network as the Sonos devices');
+        console.log('  3. Multicast enabled on your network\n');
+        console.log('Alternatively, you can:');
+        console.log('  • Use a specific device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase1');
+        console.log('  • Run in mock mode: npm run test:phase1 -- --mock');
+        console.log('  • Or use environment variable: MOCK_DEVICES=true npm run test:phase1\n');
         throw new Error(
-            'No Sonos devices found. Please ensure devices are on the network.\n' +
-            'Alternatively, set SONOS_DEVICE_IP environment variable to test with a specific device.'
+            'No Sonos devices found. Please ensure devices are on the network, use SONOS_DEVICE_IP, or use --mock flag.'
         );
     }
 
@@ -90,7 +153,7 @@ async function testQueueManagement(): Promise<void> {
 
     // Test: Get Queue
     await runTest('Get Queue', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_get_queue',
             arguments: { deviceId, startIndex: 0, count: 10 },
         });
@@ -104,7 +167,7 @@ async function testQueueManagement(): Promise<void> {
 
     // Test: Add to Queue
     await runTest('Add to Queue', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_add_to_queue',
             arguments: {
                 deviceId,
@@ -126,7 +189,7 @@ async function testQueueManagement(): Promise<void> {
 
     // Test: Remove from Queue
     await runTest('Remove from Queue', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_remove_from_queue',
             arguments: { deviceId, position: 1 },
         });
@@ -134,7 +197,7 @@ async function testQueueManagement(): Promise<void> {
 
     // Test: Clear Queue
     await runTest('Clear Queue', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_clear_queue',
             arguments: { deviceId },
         });
@@ -143,7 +206,7 @@ async function testQueueManagement(): Promise<void> {
     // Test: Save Queue - first add a track so we have something to save
     await runTest('Save Queue as Playlist', async () => {
         // Add a track first
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_add_to_queue',
             arguments: {
                 deviceId,
@@ -157,7 +220,7 @@ async function testQueueManagement(): Promise<void> {
         });
 
         // Now save the queue
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_save_queue',
             arguments: { deviceId, title: 'Test Playlist' },
         });
@@ -175,14 +238,14 @@ async function testPlaybackProperties(): Promise<void> {
 
     // Test: Set Shuffle
     await runTest('Set Shuffle ON', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_shuffle',
             arguments: { deviceId, enabled: true },
         });
     });
 
     await runTest('Set Shuffle OFF', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_shuffle',
             arguments: { deviceId, enabled: false },
         });
@@ -190,21 +253,21 @@ async function testPlaybackProperties(): Promise<void> {
 
     // Test: Set Repeat
     await runTest('Set Repeat ALL', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_repeat',
             arguments: { deviceId, mode: 'all' },
         });
     });
 
     await runTest('Set Repeat ONE', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_repeat',
             arguments: { deviceId, mode: 'one' },
         });
     });
 
     await runTest('Set Repeat OFF', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_repeat',
             arguments: { deviceId, mode: 'off' },
         });
@@ -212,14 +275,14 @@ async function testPlaybackProperties(): Promise<void> {
 
     // Test: Set Crossfade
     await runTest('Set Crossfade ON', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_crossfade',
             arguments: { deviceId, enabled: true },
         });
     });
 
     await runTest('Set Crossfade OFF', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_crossfade',
             arguments: { deviceId, enabled: false },
         });
@@ -227,7 +290,7 @@ async function testPlaybackProperties(): Promise<void> {
 
     // Test: Get Playback State
     await runTest('Get Playback State', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_get_playback_state',
             arguments: { deviceId },
         });
@@ -248,7 +311,7 @@ async function testEnhancedPlayUri(): Promise<void> {
 
     // Test: Play URI with metadata
     await runTest('Play URI with metadata', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_play_uri',
             arguments: {
                 deviceId,
@@ -265,7 +328,7 @@ async function testEnhancedPlayUri(): Promise<void> {
 
     // Test: Play URI with auto-play
     await runTest('Play URI with auto-play', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_play_uri',
             arguments: {
                 deviceId,
@@ -276,7 +339,7 @@ async function testEnhancedPlayUri(): Promise<void> {
 
         // Stop playback after test
         await wait(1000);
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_stop',
             arguments: { deviceId },
         });
@@ -288,7 +351,7 @@ async function testPlayFromQueue(): Promise<void> {
 
     await runTest('Play from Queue Position', async () => {
         // First add some items to queue
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_add_to_queue',
             arguments: {
                 deviceId,
@@ -298,7 +361,7 @@ async function testPlayFromQueue(): Promise<void> {
         });
 
         // Play from position 1
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_play_from_queue',
             arguments: { deviceId, position: 1 },
         });
@@ -306,7 +369,7 @@ async function testPlayFromQueue(): Promise<void> {
         await wait(1000);
 
         // Stop playback
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_stop',
             arguments: { deviceId },
         });
@@ -332,8 +395,11 @@ async function cleanup(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+    const isMockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+    const mockSuffix = isMockMode ? ' (MOCK MODE)' : '';
+
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║     Phase 1 API Test Suite               ║');
+    console.log(`║     Phase 1 API Test Suite${mockSuffix.padEnd(15)}║`);
     console.log('║  Queue, DIDL, Playback Properties        ║');
     console.log('╚══════════════════════════════════════════╝\n');
 

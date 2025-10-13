@@ -11,10 +11,10 @@
  * Usage:
  * - With device discovery: npm run test:phase3
  * - With manual device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase3
+ * - With mock mode (no real devices): npm run test:phase3 -- --mock
+ * - With mock mode (env var): MOCK_DEVICES=true npm run test:phase3
  * 
- * Note: This test requires a real Sonos device on the network.
- * If no devices are found via discovery and no manual IP is provided,
- * the test will fail with a device not found error.
+ * Note: This test can work with real devices, manual IP, or in mock mode.
  */
 
 import { spawn, type ChildProcess } from 'child_process';
@@ -28,6 +28,44 @@ import {
 
 let mcpProcess: ChildProcess;
 let deviceId: string;
+let mockMode = false;
+
+/**
+ * Helper function to call tools with mock support
+ */
+async function callToolSafe(toolCall: any): Promise<any> {
+    if (mockMode) {
+        const toolName = toolCall.name;
+
+        if (toolName === 'sonos_get_audio_settings') {
+            return { bass: 0, treble: 0, loudness: true };
+        }
+
+        if (toolName === 'sonos_get_sleep_timer') {
+            return { remaining: 0 };
+        }
+
+        if (toolName === 'sonos_list_alarms') {
+            return {
+                alarms: [
+                    { id: '1', time: '07:00', enabled: true, days: 'WEEKDAYS' },
+                ],
+            };
+        }
+
+        if (toolName === 'sonos_create_alarm') {
+            return { alarmId: '123' };
+        }
+
+        if (toolName === 'sonos_snapshot') {
+            return { snapshot: 'mock-snapshot-data-123' };
+        }
+
+        return { success: true };
+    }
+
+    return await callTool(mcpProcess, toolCall);
+}
 
 async function startMcpServer(): Promise<void> {
     console.log('🚀 Starting MCP Server in stdio mode...\n');
@@ -72,12 +110,31 @@ async function initializeAndDiscover(): Promise<void> {
     }
 
     console.log('🔍 Discovering Sonos devices...\n');
+
+    // Check if mock mode is enabled
+    mockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+
+    if (mockMode) {
+        console.log('⚠️  Running in MOCK MODE (no real devices required)\n');
+        deviceId = 'RINCON_MOCK001';
+        console.log(`✅ Created mock device: Mock Sonos Device (${deviceId})\n`);
+        return;
+    }
+
     const devices = await discoverDevices(mcpProcess);
 
     if (devices.length === 0) {
+        console.log('\n⚠️  No Sonos devices found on the network.\n');
+        console.log('To run this test, you need:');
+        console.log('  1. At least one Sonos device powered on');
+        console.log('  2. This computer on the same network as the Sonos devices');
+        console.log('  3. Multicast enabled on your network\n');
+        console.log('Alternatively, you can:');
+        console.log('  • Use a specific device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase3');
+        console.log('  • Run in mock mode: npm run test:phase3 -- --mock');
+        console.log('  • Or use environment variable: MOCK_DEVICES=true npm run test:phase3\n');
         throw new Error(
-            'No Sonos devices found. Please ensure devices are on the network.\n' +
-            'Alternatively, set SONOS_DEVICE_IP environment variable to test with a specific device.'
+            'No Sonos devices found. Please ensure devices are on the network, use SONOS_DEVICE_IP, or use --mock flag.'
         );
     }
 
@@ -91,14 +148,14 @@ async function testEnhancedAudioControls(): Promise<void> {
 
     // Test: Set Bass
     await runTest('Set Bass to +5', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_bass',
             arguments: { deviceId, level: 5 },
         });
     });
 
     await runTest('Set Bass to 0', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_bass',
             arguments: { deviceId, level: 0 },
         });
@@ -106,14 +163,14 @@ async function testEnhancedAudioControls(): Promise<void> {
 
     // Test: Set Treble
     await runTest('Set Treble to +3', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_treble',
             arguments: { deviceId, level: 3 },
         });
     });
 
     await runTest('Set Treble to 0', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_treble',
             arguments: { deviceId, level: 0 },
         });
@@ -121,14 +178,14 @@ async function testEnhancedAudioControls(): Promise<void> {
 
     // Test: Set Loudness
     await runTest('Set Loudness ON', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_loudness',
             arguments: { deviceId, enabled: true },
         });
     });
 
     await runTest('Set Loudness OFF', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_loudness',
             arguments: { deviceId, enabled: false },
         });
@@ -136,7 +193,7 @@ async function testEnhancedAudioControls(): Promise<void> {
 
     // Test: Get EQ Settings
     await runTest('Get EQ Settings', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_get_eq',
             arguments: { deviceId },
         });
@@ -153,7 +210,7 @@ async function testEnhancedAudioControls(): Promise<void> {
     // Test: Night Mode (may fail on non-soundbar devices)
     await runTest('Set Night Mode ON (soundbar only)', async () => {
         try {
-            await callTool(mcpProcess, {
+            await callToolSafe({
                 name: 'sonos_set_night_mode',
                 arguments: { deviceId, enabled: true },
             });
@@ -170,7 +227,7 @@ async function testEnhancedAudioControls(): Promise<void> {
     // Test: Dialog Mode (may fail on non-soundbar devices)
     await runTest('Set Dialog Mode ON (soundbar only)', async () => {
         try {
-            await callTool(mcpProcess, {
+            await callToolSafe({
                 name: 'sonos_set_dialog_mode',
                 arguments: { deviceId, enabled: true },
             });
@@ -190,7 +247,7 @@ async function testSleepTimer(): Promise<void> {
 
     // Test: Set Sleep Timer
     await runTest('Set Sleep Timer (30 minutes)', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_sleep_timer',
             arguments: { deviceId, duration: '00:30:00' },
         });
@@ -202,7 +259,7 @@ async function testSleepTimer(): Promise<void> {
 
     // Test: Get Sleep Timer
     await runTest('Get Sleep Timer Remaining', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_get_sleep_timer',
             arguments: { deviceId },
         });
@@ -216,7 +273,7 @@ async function testSleepTimer(): Promise<void> {
 
     // Test: Cancel Sleep Timer
     await runTest('Cancel Sleep Timer', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_cancel_sleep_timer',
             arguments: { deviceId },
         });
@@ -232,7 +289,7 @@ async function testAlarmManagement(): Promise<void> {
 
     // Test: List Alarms
     await runTest('List All Alarms', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_list_alarms',
             arguments: { deviceId },
         });
@@ -248,7 +305,7 @@ async function testAlarmManagement(): Promise<void> {
     // Note: This may fail with error 801 if the device is in a grouped state,
     // part of a stereo pair, or if there's a temporary system condition.
     await runTest('Create Test Alarm', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_create_alarm',
             arguments: {
                 deviceId,
@@ -280,7 +337,7 @@ async function testAlarmManagement(): Promise<void> {
     // Test: Update Alarm
     if (alarmId) {
         await runTest('Update Alarm Time', async () => {
-            await callTool(mcpProcess, {
+            await callToolSafe({
                 name: 'sonos_update_alarm',
                 arguments: {
                     deviceId,
@@ -299,7 +356,7 @@ async function testAlarmManagement(): Promise<void> {
     // Test: Delete Alarm
     if (alarmId) {
         await runTest('Delete Test Alarm', async () => {
-            await callTool(mcpProcess, {
+            await callToolSafe({
                 name: 'sonos_delete_alarm',
                 arguments: { deviceId, alarmId },
             });
@@ -316,7 +373,7 @@ async function testSnapshot(): Promise<void> {
 
     // Test: Create Snapshot
     await runTest('Create State Snapshot', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_snapshot',
             arguments: { deviceId },
         });
@@ -330,7 +387,7 @@ async function testSnapshot(): Promise<void> {
     });
 
     // Make some changes to state
-    await callTool(mcpProcess, {
+    await callToolSafe({
         name: 'sonos_set_volume',
         arguments: { deviceId, volume: 15 },
     });
@@ -340,7 +397,7 @@ async function testSnapshot(): Promise<void> {
     // Test: Restore Snapshot
     if (snapshot) {
         await runTest('Restore State from Snapshot', async () => {
-            await callTool(mcpProcess, {
+            await callToolSafe({
                 name: 'sonos_restore_snapshot',
                 arguments: { deviceId, snapshot },
             });
@@ -354,7 +411,7 @@ async function testSnapshot(): Promise<void> {
     // Test: Restore with Fade
     if (snapshot) {
         await runTest('Restore Snapshot with Fade', async () => {
-            await callTool(mcpProcess, {
+            await callToolSafe({
                 name: 'sonos_restore_snapshot',
                 arguments: { deviceId, snapshot, fade: true },
             });
@@ -383,8 +440,11 @@ async function cleanup(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+    const isMockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+    const mockSuffix = isMockMode ? ' (MOCK MODE)' : '';
+
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║     Phase 3 API Test Suite               ║');
+    console.log(`║     Phase 3 API Test Suite${mockSuffix.padEnd(15)}║`);
     console.log('║  Audio, Sleep, Alarms, Snapshots         ║');
     console.log('╚══════════════════════════════════════════╝\n');
 

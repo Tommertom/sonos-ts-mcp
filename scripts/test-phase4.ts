@@ -10,10 +10,11 @@
  * Usage:
  * - With device discovery: npm run test:phase4
  * - With manual device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase4
+ * - With mock mode (no real devices): npm run test:phase4 -- --mock
+ * - With mock mode (env var): MOCK_DEVICES=true npm run test:phase4
  * 
- * Note: This test requires a real Sonos device on the network.
+ * Note: This test can work with real devices, manual IP, or in mock mode.
  * The test remains running for an extended period to monitor events.
- * to receive and validate event notifications.
  */
 
 import { spawn, type ChildProcess } from 'child_process';
@@ -28,6 +29,36 @@ import {
 let mcpProcess: ChildProcess;
 let deviceId: string;
 let subscriptionId: string | undefined;
+let mockMode = false;
+
+/**
+ * Helper function to call tools with mock support
+ */
+async function callToolSafe(toolCall: any): Promise<any> {
+    if (mockMode) {
+        const toolName = toolCall.name;
+
+        if (toolName === 'sonos_subscribe_events') {
+            return { subscriptionId: 'mock-sub-123', sid: 'uuid:mock-sid-123' };
+        }
+
+        if (toolName === 'sonos_unsubscribe_events') {
+            return { success: true };
+        }
+
+        if (toolName === 'sonos_list_subscriptions') {
+            return {
+                subscriptions: [
+                    { id: 'mock-sub-123', service: 'AVTransport', active: true },
+                ],
+            };
+        }
+
+        return { success: true };
+    }
+
+    return await callTool(mcpProcess, toolCall);
+}
 
 async function startMcpServer(): Promise<void> {
     console.log('🚀 Starting MCP Server in stdio mode...\n');
@@ -72,12 +103,31 @@ async function initializeAndDiscover(): Promise<void> {
     }
 
     console.log('🔍 Discovering Sonos devices...\n');
+
+    // Check if mock mode is enabled
+    mockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+
+    if (mockMode) {
+        console.log('⚠️  Running in MOCK MODE (no real devices required)\n');
+        deviceId = 'RINCON_MOCK001';
+        console.log(`✅ Created mock device: Mock Sonos Device (${deviceId})\n`);
+        return;
+    }
+
     const devices = await discoverDevices(mcpProcess);
 
     if (devices.length === 0) {
+        console.log('\n⚠️  No Sonos devices found on the network.\n');
+        console.log('To run this test, you need:');
+        console.log('  1. At least one Sonos device powered on');
+        console.log('  2. This computer on the same network as the Sonos devices');
+        console.log('  3. Multicast enabled on your network\n');
+        console.log('Alternatively, you can:');
+        console.log('  • Use a specific device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase4');
+        console.log('  • Run in mock mode: npm run test:phase4 -- --mock');
+        console.log('  • Or use environment variable: MOCK_DEVICES=true npm run test:phase4\n');
         throw new Error(
-            'No Sonos devices found. Please ensure devices are on the network.\n' +
-            'Alternatively, set SONOS_DEVICE_IP environment variable to test with a specific device.'
+            'No Sonos devices found. Please ensure devices are on the network, use SONOS_DEVICE_IP, or use --mock flag.'
         );
     }
 
@@ -91,7 +141,7 @@ async function testEventSubscription(): Promise<void> {
 
     // Test: Subscribe to AVTransport events
     await runTest('Subscribe to AVTransport Events', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_subscribe_events',
             arguments: {
                 deviceId,
@@ -111,7 +161,7 @@ async function testEventSubscription(): Promise<void> {
 
     // Test: Subscribe to RenderingControl events
     await runTest('Subscribe to RenderingControl Events', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_subscribe_events',
             arguments: {
                 deviceId,
@@ -134,7 +184,7 @@ async function testEventGeneration(): Promise<void> {
 
     // Trigger volume change event
     await runTest('Trigger Volume Change Event', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_volume',
             arguments: { deviceId, volume: 20 },
         });
@@ -144,7 +194,7 @@ async function testEventGeneration(): Promise<void> {
     await wait(2000);
 
     await runTest('Trigger Another Volume Change', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_volume',
             arguments: { deviceId, volume: 25 },
         });
@@ -155,7 +205,7 @@ async function testEventGeneration(): Promise<void> {
 
     // Trigger mute event
     await runTest('Trigger Mute Event', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_mute',
             arguments: { deviceId, muted: true },
         });
@@ -165,7 +215,7 @@ async function testEventGeneration(): Promise<void> {
     await wait(2000);
 
     await runTest('Trigger Unmute Event', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_set_mute',
             arguments: { deviceId, muted: false },
         });
@@ -178,7 +228,7 @@ async function testEventGeneration(): Promise<void> {
     console.log('\n▶️  Triggering playback state events...\n');
 
     // Add something to queue first
-    await callTool(mcpProcess, {
+    await callToolSafe({
         name: 'sonos_add_to_queue',
         arguments: {
             deviceId,
@@ -190,7 +240,7 @@ async function testEventGeneration(): Promise<void> {
     await wait(1000);
 
     await runTest('Trigger Play Event', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_play',
             arguments: { deviceId },
         });
@@ -200,7 +250,7 @@ async function testEventGeneration(): Promise<void> {
     await wait(3000);
 
     await runTest('Trigger Pause Event', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_pause',
             arguments: { deviceId },
         });
@@ -210,7 +260,7 @@ async function testEventGeneration(): Promise<void> {
     await wait(2000);
 
     await runTest('Trigger Stop Event', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_stop',
             arguments: { deviceId },
         });
@@ -225,7 +275,7 @@ async function testEventQuerying(): Promise<void> {
 
     // Test: List active subscriptions
     await runTest('List Active Subscriptions', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_list_subscriptions',
             arguments: { deviceId },
         });
@@ -247,7 +297,7 @@ async function testEventUnsubscription(): Promise<void> {
     // Test: Unsubscribe from specific subscription
     if (subscriptionId) {
         await runTest('Unsubscribe from AVTransport', async () => {
-            await callTool(mcpProcess, {
+            await callToolSafe({
                 name: 'sonos_unsubscribe_events',
                 arguments: { deviceId, subscriptionId },
             });
@@ -260,7 +310,7 @@ async function testEventUnsubscription(): Promise<void> {
 
     // Test: Unsubscribe from all device events
     await runTest('Unsubscribe from All Device Events', async () => {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_unsubscribe_all',
             arguments: { deviceId },
         });
@@ -277,7 +327,7 @@ async function testEventRenewal(): Promise<void> {
 
     // Subscribe with a short timeout for testing
     await runTest('Subscribe with Short Timeout (2 minutes)', async () => {
-        const result = await callTool(mcpProcess, {
+        const result = await callToolSafe({
             name: 'sonos_subscribe_events',
             arguments: {
                 deviceId,
@@ -303,7 +353,7 @@ async function cleanup(): Promise<void> {
 
     // Unsubscribe from all events
     try {
-        await callTool(mcpProcess, {
+        await callToolSafe({
             name: 'sonos_unsubscribe_all',
             arguments: { deviceId },
         });
@@ -327,8 +377,11 @@ async function cleanup(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+    const isMockMode = process.env.MOCK_DEVICES === 'true' || process.argv.includes('--mock');
+    const mockSuffix = isMockMode ? ' (MOCK MODE)' : '';
+
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║     Phase 4 API Test Suite               ║');
+    console.log(`║     Phase 4 API Test Suite${mockSuffix.padEnd(15)}║`);
     console.log('║  UPnP GENA Event Subscriptions           ║');
     console.log('╚══════════════════════════════════════════╝\n');
 

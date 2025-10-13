@@ -42,6 +42,7 @@ async function runPhaseTest(phase: { name: string; script: string; description: 
         const testProcess = spawn('tsx', [scriptPath], {
             stdio: 'inherit',
             shell: false,
+            env: process.env, // Pass through environment variables including MOCK_DEVICES
         });
 
         testProcess.on('exit', (code) => {
