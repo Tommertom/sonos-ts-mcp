@@ -328,8 +328,8 @@ async function cleanup(): Promise<void> {
 
 async function main(): Promise<void> {
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║     Phase 4 API Test Suite              ║');
-    console.log('║  UPnP GENA Event Subscriptions          ║');
+    console.log('║     Phase 4 API Test Suite               ║');
+    console.log('║  UPnP GENA Event Subscriptions           ║');
     console.log('╚══════════════════════════════════════════╝\n');
 
     console.log('📝 Note: This test subscribes to events and generates');
