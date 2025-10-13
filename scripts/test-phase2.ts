@@ -10,15 +10,10 @@
  * Usage:
  * - With device discovery: npm run test:phase2
  * - With manual device IP: SONOS_DEVICE_IP=192.168.1.100 npm run test:phase2
-<<<<<<< HEAD
- * 
- * Note: This test requires a real Sonos device on the network.
-=======
  * - With mock mode (no real devices): npm run test:phase2 -- --mock
  * - With mock mode (env var): MOCK_DEVICES=true npm run test:phase2
  * 
  * Note: This test can work with real devices, manual IP, or in mock mode.
->>>>>>> origin/copilot/debug-test-phase2-script
  */
 
 import { spawn, type ChildProcess } from 'child_process';
