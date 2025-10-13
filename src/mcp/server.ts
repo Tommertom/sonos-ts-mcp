@@ -1975,7 +1975,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Found ${alarms.length} alarm(s):\n\n${JSON.stringify(alarms, null, 2)}`,
+                    text: JSON.stringify({ alarms }),
                 },
             ],
         };
@@ -2004,7 +2004,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Alarm created with ID: ${alarmId}`,
+                    text: JSON.stringify({ alarmId }),
                 },
             ],
         };
@@ -2060,7 +2060,7 @@ export class SonosMcpServer {
             content: [
                 {
                     type: 'text',
-                    text: `Snapshot taken:\n\n${JSON.stringify(snapshot, null, 2)}`,
+                    text: JSON.stringify({ snapshot: JSON.stringify(snapshot) }),
                 },
             ],
         };
