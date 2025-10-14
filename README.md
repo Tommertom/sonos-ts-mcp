@@ -19,7 +19,7 @@ Add to your MCP settings file (`.vscode/mcp.json` or similar):
   "mcpServers": {
     "sonos": {
       "command": "npx",
-      "args": ["-y", "sonos-mcp"]
+      "args": ["-y", "sonos-ts-mcp"]
     }
   }
 }
@@ -36,7 +36,7 @@ Add to your Claude configuration file:
   "mcpServers": {
     "sonos": {
       "command": "npx",
-      "args": ["-y", "sonos-mcp"]
+      "args": ["-y", "sonos-ts-mcp"]
     }
   }
 }
