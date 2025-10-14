@@ -1,50 +1,113 @@
 # Sonos TypeScript MCP Server
 
-A Model Context Protocol (MCP) server for controlling Sonos audio devices over the local network using UPnP/SOAP.
+Your comprehensive Sonos control companion powered by the Model Context Protocol (MCP). This intelligent server provides seamless access to Sonos audio devices over your local network using UPnP/SOAP protocols. Whether you're controlling playback, managing zones, browsing your music library, or setting up alarms, this MCP server delivers complete device control directly to your AI assistant, enabling smart home automation and better audio experiences.
+
+Data is sourced from real-time UPnP/SOAP communication with Sonos devices to ensure accuracy and completeness.
 
 > **📊 Feature Status**: Phase 4 complete! Implements real-time event subscriptions with UPnP GENA protocol for playback, volume, queue, and topology changes. See [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for details.
 
-## Quick Start
+## Getting Started
 
-### Install via npx
+The Sonos TypeScript MCP Server can work with any MCP client that supports standard I/O (stdio) as the transport medium. Here are specific instructions for some popular tools:
 
-The easiest way to use this MCP server is via npx:
+### Basic Configuration
 
-#### For VS Code (Cline, Roo Cline, etc.)
+#### Claude Desktop
 
-Add to your MCP settings file (`.vscode/mcp.json` or similar):
+To configure Claude Desktop to use the Sonos MCP server, edit the `claude_desktop_config.json` file. You can open or create this file from the Claude > Settings menu. Select the Developer tab, then click Edit Config.
 
 ```json
 {
   "mcpServers": {
-    "sonos": {
+    "sonos-ts-mcp": {
       "command": "npx",
-      "args": ["-y", "sonos-ts-mcp"]
+      "args": ["-y", "sonos-ts-mcp@latest"]
     }
   }
 }
 ```
 
-#### For Claude Desktop
+#### Cline
 
-Add to your Claude configuration file:
-- **MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+To configure Cline to use the Sonos MCP server, edit the `cline_mcp_settings.json` file. You can open or create this file by clicking the MCP Servers icon at the top of the Cline pane, then clicking the Configure MCP Servers button.
 
 ```json
 {
   "mcpServers": {
-    "sonos": {
+    "sonos-ts-mcp": {
       "command": "npx",
-      "args": ["-y", "sonos-ts-mcp"]
+      "args": ["-y", "sonos-ts-mcp@latest"],
+      "disabled": false
     }
   }
 }
 ```
 
-The `-y` flag automatically confirms the package installation without prompting.
+#### Cursor
+
+To configure Cursor to use the Sonos MCP server, edit either the file `.cursor/mcp.json` (to configure only a specific project) or the file `~/.cursor/mcp.json` (to make the MCP server available in all projects):
+
+```json
+{
+  "mcpServers": {
+    "sonos-ts-mcp": {
+      "command": "npx",
+      "args": ["-y", "sonos-ts-mcp@latest"]
+    }
+  }
+}
+```
+
+#### Visual Studio Code Copilot
+
+To configure a single project, edit the `.vscode/mcp.json` file in your workspace:
+
+```json
+{
+  "servers": {
+    "sonos-ts-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "sonos-ts-mcp@latest"]
+    }
+  }
+}
+```
+
+To make the server available in every project you open, edit your user settings:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "sonos-ts-mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "sonos-ts-mcp@latest"]
+      }
+    }
+  }
+}
+```
+
+#### Windsurf Editor
+
+To configure Windsurf Editor, edit the file `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "sonos-ts-mcp": {
+      "command": "npx",
+      "args": ["-y", "sonos-ts-mcp@latest"]
+    }
+  }
+}
+```
 
 ## Features
+
+This MCP server provides comprehensive control of your Sonos audio system:
 
 - **Device Discovery**: Automatic SSDP-based discovery of Sonos devices
 - **Playback Control**: Play, pause, stop, next, previous
@@ -77,7 +140,114 @@ This project is actively expanding to match the comprehensive feature set of the
 
 See the [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for the latest features.
 
-## Installation
+## Tools Available
+
+### Discovery Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_discover` | Discover Sonos devices on the network using SSDP multicast |
+| `sonos_add_device` | Manually add a Sonos device by IP address (useful when SSDP discovery fails) |
+| `sonos_list_devices` | List all discovered/registered devices |
+
+### Playback Control Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_play` | Start playback |
+| `sonos_pause` | Pause playback |
+| `sonos_stop` | Stop playback |
+| `sonos_next` | Skip to next track |
+| `sonos_previous` | Skip to previous track |
+
+### Volume Control Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_set_volume` | Set volume (0-100) |
+| `sonos_get_volume` | Get current volume |
+| `sonos_set_mute` | Mute or unmute |
+
+### Queue Management Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_get_queue` | Get the current playback queue |
+| `sonos_add_to_queue` | Add a URI to the queue |
+| `sonos_remove_from_queue` | Remove a track from the queue |
+| `sonos_clear_queue` | Remove all tracks from the queue |
+| `sonos_play_from_queue` | Play from a specific queue position |
+| `sonos_save_queue` | Save the queue as a Sonos playlist |
+
+### Playback Properties Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_set_shuffle` | Enable or disable shuffle mode |
+| `sonos_set_repeat` | Set repeat mode (off, all, one) |
+| `sonos_set_crossfade` | Enable or disable crossfade |
+| `sonos_get_playback_state` | Get shuffle, repeat, crossfade, and playback state |
+
+### Group Management Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_join_group` | Join a device to another device's group |
+| `sonos_unjoin` | Remove a device from its group |
+| `sonos_party_mode` | Join all devices at once |
+
+### Music Library Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_browse_artists` | Browse all artists in the music library |
+| `sonos_browse_albums` | Browse all albums in the music library |
+| `sonos_browse_tracks` | Browse all tracks in the music library |
+| `sonos_browse_genres` | Browse all genres in the music library |
+| `sonos_browse_playlists` | Browse Sonos playlists |
+| `sonos_search_library` | Search the music library |
+| `sonos_browse_item` | Browse subcategories (e.g., albums for an artist) |
+
+### Audio/EQ Control Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_set_bass` | Set bass level (-10 to 10) |
+| `sonos_set_treble` | Set treble level (-10 to 10) |
+| `sonos_set_loudness` | Enable/disable loudness compensation |
+| `sonos_get_eq` | Get all EQ settings |
+| `sonos_set_night_mode` | Enable/disable night mode (home theater) |
+| `sonos_set_dialog_mode` | Enable/disable dialog enhancement (home theater) |
+
+### Sleep Timer Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_set_sleep_timer` | Set automatic playback stop timer |
+| `sonos_get_sleep_timer` | Get remaining timer |
+| `sonos_cancel_sleep_timer` | Cancel sleep timer |
+
+### Alarm Management Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_list_alarms` | List all alarms |
+| `sonos_create_alarm` | Create a new alarm |
+| `sonos_update_alarm` | Update an existing alarm |
+| `sonos_delete_alarm` | Delete an alarm |
+
+### State Management Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_snapshot` | Take a snapshot of device state |
+| `sonos_restore_snapshot` | Restore from snapshot |
+
+### Event Subscription Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_subscribe_events` | Subscribe to real-time device events (AVTransport, RenderingControl, Queue, ZoneGroupTopology, AlarmClock) |
+| `sonos_unsubscribe_events` | Unsubscribe from a specific subscription |
+| `sonos_unsubscribe_all` | Unsubscribe from all device subscriptions |
+| `sonos_list_subscriptions` | List active event subscriptions |
+
+### Information Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_get_transport_info` | Get playback state |
+| `sonos_get_position_info` | Get current track details |
+| `sonos_get_zone_groups` | Get zone topology |
+
+## Development and Installation
 
 ```bash
 npm install
@@ -202,87 +372,6 @@ npm run test:phase2 -- --mock
 
 See the [API Testing Guide](./docs/api-testing-guide.md) for detailed documentation on the test suite.
 
-## Available Tools
-
-### Discovery
-- `sonos_discover` - Discover Sonos devices on the network using SSDP multicast
-- `sonos_add_device` - Manually add a Sonos device by IP address (useful when SSDP discovery fails)
-- `sonos_list_devices` - List all discovered/registered devices
-
-### Playback Control
-- `sonos_play` - Start playback
-- `sonos_pause` - Pause playback
-- `sonos_stop` - Stop playback
-- `sonos_next` - Skip to next track
-- `sonos_previous` - Skip to previous track
-
-### Volume Control
-- `sonos_set_volume` - Set volume (0-100)
-- `sonos_get_volume` - Get current volume
-- `sonos_set_mute` - Mute or unmute
-
-### Queue Management
-- `sonos_get_queue` - Get the current playback queue
-- `sonos_add_to_queue` - Add a URI to the queue
-- `sonos_remove_from_queue` - Remove a track from the queue
-- `sonos_clear_queue` - Remove all tracks from the queue
-- `sonos_play_from_queue` - Play from a specific queue position
-- `sonos_save_queue` - Save the queue as a Sonos playlist
-
-### Playback Properties
-- `sonos_set_shuffle` - Enable or disable shuffle mode
-- `sonos_set_repeat` - Set repeat mode (off, all, one)
-- `sonos_set_crossfade` - Enable or disable crossfade
-- `sonos_get_playback_state` - Get shuffle, repeat, crossfade, and playback state
-
-### Group Management
-- `sonos_join_group` - Join a device to another device's group
-- `sonos_unjoin` - Remove a device from its group
-- `sonos_party_mode` - Join all devices at once ✨ NEW
-
-### Music Library
-- `sonos_browse_artists` - Browse all artists in the music library
-- `sonos_browse_albums` - Browse all albums in the music library
-- `sonos_browse_tracks` - Browse all tracks in the music library
-- `sonos_browse_genres` - Browse all genres in the music library
-- `sonos_browse_playlists` - Browse Sonos playlists
-- `sonos_search_library` - Search the music library
-- `sonos_browse_item` - Browse subcategories (e.g., albums for an artist)
-
-### Audio/EQ Controls ✨ NEW
-- `sonos_set_bass` - Set bass level (-10 to 10)
-- `sonos_set_treble` - Set treble level (-10 to 10)
-- `sonos_set_loudness` - Enable/disable loudness compensation
-- `sonos_get_eq` - Get all EQ settings
-- `sonos_set_night_mode` - Enable/disable night mode (home theater)
-- `sonos_set_dialog_mode` - Enable/disable dialog enhancement (home theater)
-
-### Sleep Timer ✨ NEW
-- `sonos_set_sleep_timer` - Set automatic playback stop timer
-- `sonos_get_sleep_timer` - Get remaining timer
-- `sonos_cancel_sleep_timer` - Cancel sleep timer
-
-### Alarm Management ✨ NEW
-- `sonos_list_alarms` - List all alarms
-- `sonos_create_alarm` - Create a new alarm
-- `sonos_update_alarm` - Update an existing alarm
-- `sonos_delete_alarm` - Delete an alarm
-
-### State Management ✨ NEW
-- `sonos_snapshot` - Take a snapshot of device state
-- `sonos_restore_snapshot` - Restore from snapshot
-
-### Event Subscriptions (Phase 4 ✨ NEW)
-- `sonos_subscribe_events` - Subscribe to real-time device events (AVTransport, RenderingControl, Queue, ZoneGroupTopology, AlarmClock)
-- `sonos_unsubscribe_events` - Unsubscribe from a specific subscription
-- `sonos_unsubscribe_all` - Unsubscribe from all device subscriptions
-- `sonos_list_subscriptions` - List active event subscriptions
-
-### Information
-- `sonos_get_transport_info` - Get playback state
-- `sonos_get_position_info` - Get current track details
-- `sonos_get_zone_groups` - Get zone topology
-
 ## Architecture
 
 ```
@@ -354,11 +443,9 @@ The server will test connectivity to the device before adding it to the registry
 
 ## Documentation
 
-- 📖 [API Testing Guide](./docs/api-testing-guide.md) - Comprehensive test suite documentation ✨ NEW
-- 📖 [Quick Reference](./docs/quick-reference.md) - Feature status at a glance
-- 📊 [SoCo Feature Comparison](./docs/soco-comparison.md) - Detailed feature comparison with SoCo
-- 🗺️ [Implementation Roadmap](./docs/implementation-roadmap.md) - Phased expansion plan
-- 📋 [Executive Summary](./docs/soco-analysis-summary.md) - High-level overview
+- � [Installation Guide](./docs/installation-guide.md) - Detailed installation and configuration instructions
+- � [API Testing Guide](./docs/api-testing-guide.md) - Comprehensive test suite documentation ✨ NEW
+- � [Implementation Guide](./docs/implementation-guide.md) - Tool usage and examples
 - 🏗️ [Technical Architecture](./docs/technical-architecture.md) - System design details
 - 📚 [Phase Completion Docs](./docs/) - PHASE-1-COMPLETE.md through PHASE-4-COMPLETE.md
 
