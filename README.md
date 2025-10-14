@@ -4,6 +4,46 @@ A Model Context Protocol (MCP) server for controlling Sonos audio devices over t
 
 > **📊 Feature Status**: Phase 4 complete! Implements real-time event subscriptions with UPnP GENA protocol for playback, volume, queue, and topology changes. See [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for details.
 
+## Quick Start
+
+### Install via npx
+
+The easiest way to use this MCP server is via npx:
+
+#### For VS Code (Cline, Roo Cline, etc.)
+
+Add to your MCP settings file (`.vscode/mcp.json` or similar):
+
+```json
+{
+  "mcpServers": {
+    "sonos": {
+      "command": "npx",
+      "args": ["-y", "sonos-mcp"]
+    }
+  }
+}
+```
+
+#### For Claude Desktop
+
+Add to your Claude configuration file:
+- **MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "sonos": {
+      "command": "npx",
+      "args": ["-y", "sonos-mcp"]
+    }
+  }
+}
+```
+
+The `-y` flag automatically confirms the package installation without prompting.
+
 ## Features
 
 - **Device Discovery**: Automatic SSDP-based discovery of Sonos devices

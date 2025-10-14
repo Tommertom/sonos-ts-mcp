@@ -5,9 +5,13 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "sonos-mcp": "dist/index.js"
+    "sonos-ts-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "prepare": "npm run build",
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "test": "vitest run",
