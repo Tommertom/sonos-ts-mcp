@@ -19,6 +19,8 @@ npm run dev
 node dist/index.js
 ```
 
+> **💡 Automatic Discovery**: The server automatically discovers Sonos devices on startup and every 5 minutes. You'll see discovery logs in stderr. See the [Auto-Discovery Guide](./auto-discovery.md) for more details.
+
 ### Integrating with MCP Clients
 
 Add to your MCP client configuration (e.g., Claude Desktop config):
@@ -38,8 +40,10 @@ Add to your MCP client configuration (e.g., Claude Desktop config):
 
 ### Discovery
 
+> **⚡ Note**: The server performs automatic discovery on startup and every 5 minutes. Manual discovery with `sonos_discover` is optional but useful for immediate updates or custom timeouts.
+
 #### `sonos_discover`
-Discover Sonos devices on the local network.
+Manually discover Sonos devices on the local network.
 
 **Parameters:**
 - `timeout` (optional, number): Discovery timeout in milliseconds (default: 5000)

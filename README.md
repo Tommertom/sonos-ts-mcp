@@ -109,7 +109,8 @@ To configure Windsurf Editor, edit the file `~/.codeium/windsurf/mcp_config.json
 
 This MCP server provides comprehensive control of your Sonos audio system:
 
-- **Device Discovery**: Automatic SSDP-based discovery of Sonos devices
+- **Automatic Discovery**: Discovers devices on startup and every 5 minutes ✨ NEW
+- **Device Discovery**: Manual SSDP-based discovery of Sonos devices
 - **Playback Control**: Play, pause, stop, next, previous
 - **Volume Control**: Get and set volume levels, mute/unmute
 - **Transport Info**: Get current playback state and track information

@@ -4,6 +4,15 @@ All notable changes to the Sonos TypeScript MCP Server project.
 
 ## [Unreleased]
 
+### Added
+- **Automatic Discovery**: Server now automatically discovers devices on startup and every 5 minutes
+  - Initial discovery runs immediately after server starts
+  - Periodic discovery every 5 minutes (300 seconds) keeps device registry updated
+  - Full device details fetched from device_description.xml (name, model, software version)
+  - Preserves existing device details when re-discovering known devices
+  - Graceful shutdown stops periodic discovery timer
+  - See `docs/auto-discovery.md` for complete documentation
+
 ### Fixed
 - **Phase 4 MCP Tools**: Implemented missing MCP server tools for event subscriptions
   - `sonos_subscribe_events` - Subscribe to real-time device events
@@ -16,6 +25,9 @@ All notable changes to the Sonos TypeScript MCP Server project.
 ### Documentation
 - Updated `docs/PHASE-4-COMPLETE.md` with MCP tool documentation and usage examples
 - Added Phase 4 event subscription tools to README.md tool listing
+- Created `docs/auto-discovery.md` with comprehensive auto-discovery documentation
+- Updated README.md to highlight automatic discovery feature
+- Updated implementation guide with auto-discovery notes
 
 ## [1.4.0] - 2025-10-13 - Phase 4 Complete
 

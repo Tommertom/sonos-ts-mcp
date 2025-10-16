@@ -1,3 +1,4 @@
+import { setInterval, clearInterval } from 'node:timers';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -18,10 +19,13 @@ import { SoapClient } from '../soap/client.js';
 import { RequestBuilder } from '../soap/request-builder.js';
 import { DidlObject } from '../didl/didl-object.js';
 import { getDefaultManager } from '../events/subscription-manager.js';
+import type { SonosDevice } from '../types/sonos.js';
 
 export class SonosMcpServer {
     private server: Server;
     private registry: DeviceRegistry;
+    private discoveryInterval: NodeJS.Timeout | null = null;
+    private readonly DISCOVERY_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
     constructor() {
         this.server = new Server(
@@ -1205,7 +1209,11 @@ export class SonosMcpServer {
         const responses = await client.discover(timeout);
 
         for (const response of responses) {
-            this.registry.addFromDiscovery(response);
+            const device = this.registry.addFromDiscovery(response);
+            if (device) {
+                // Fetch full device details
+                await this.fetchDeviceDetails(device);
+            }
         }
 
         const devices = this.registry.getAllDevices();
@@ -2387,8 +2395,114 @@ export class SonosMcpServer {
         return 'Unknown';
     }
 
+    /**
+     * Fetch full device details from device_description.xml
+     */
+    private async fetchDeviceDetails(device: SonosDevice): Promise<void> {
+        try {
+            const descriptionUrl = `http://${device.ip}:${device.port}/xml/device_description.xml`;
+            const response = await fetch(descriptionUrl);
+            if (!response.ok) {
+                console.warn(`Failed to fetch device details for ${device.ip}:${device.port}`);
+                return;
+            }
+
+            const xml = await response.text();
+
+            // Extract device information
+            const roomNameMatch = /<roomName>([^<]+)<\/roomName>/i.exec(xml);
+            const modelNameMatch = /<modelName>([^<]+)<\/modelName>/i.exec(xml);
+            const modelNumberMatch = /<modelNumber>([^<]+)<\/modelNumber>/i.exec(xml);
+            const softwareVersionMatch = /<softwareVersion>([^<]+)<\/softwareVersion>/i.exec(xml);
+            const displayNameMatch = /<displayName>([^<]+)<\/displayName>/i.exec(xml);
+
+            // Update device with details
+            if (roomNameMatch?.[1]) {
+                device.name = roomNameMatch[1];
+            } else if (displayNameMatch?.[1]) {
+                device.name = displayNameMatch[1];
+            }
+
+            if (modelNameMatch?.[1]) {
+                device.modelName = modelNameMatch[1];
+            }
+
+            if (modelNumberMatch?.[1]) {
+                device.modelNumber = modelNumberMatch[1];
+            }
+
+            if (softwareVersionMatch?.[1]) {
+                device.softwareVersion = softwareVersionMatch[1];
+            }
+
+            this.registry.updateDevice(device);
+        } catch (error) {
+            console.warn(`Error fetching device details for ${device.ip}:${device.port}:`, error);
+        }
+    }
+
+    /**
+     * Perform automatic discovery
+     */
+    private async performAutoDiscovery(): Promise<void> {
+        try {
+            console.error('[Auto-Discovery] Starting device discovery...');
+            const client = new SsdpClient();
+            const responses = await client.discover(5000);
+
+            for (const response of responses) {
+                const device = this.registry.addFromDiscovery(response);
+                if (device) {
+                    await this.fetchDeviceDetails(device);
+                }
+            }
+
+            const devices = this.registry.getAllDevices();
+            console.error(`[Auto-Discovery] Found ${responses.length} device(s), total registered: ${devices.length}`);
+        } catch (error) {
+            console.error('[Auto-Discovery] Error during discovery:', error);
+        }
+    }
+
+    /**
+     * Start periodic discovery
+     */
+    private startPeriodicDiscovery(): void {
+        // Perform initial discovery
+        this.performAutoDiscovery().catch((error) => {
+            console.error('[Auto-Discovery] Initial discovery failed:', error);
+        });
+
+        // Set up periodic discovery every 5 minutes
+        this.discoveryInterval = setInterval(() => {
+            this.performAutoDiscovery().catch((error) => {
+                console.error('[Auto-Discovery] Periodic discovery failed:', error);
+            });
+        }, this.DISCOVERY_INTERVAL_MS);
+
+        console.error(`[Auto-Discovery] Periodic discovery started (every ${this.DISCOVERY_INTERVAL_MS / 1000}s)`);
+    }
+
+    /**
+     * Stop periodic discovery
+     */
+    private stopPeriodicDiscovery(): void {
+        if (this.discoveryInterval) {
+            clearInterval(this.discoveryInterval);
+            this.discoveryInterval = null;
+            console.error('[Auto-Discovery] Periodic discovery stopped');
+        }
+    }
+
     async run(): Promise<void> {
         const transport = new StdioServerTransport();
         await this.server.connect(transport);
+
+        // Start automatic discovery after server connects
+        this.startPeriodicDiscovery();
+    }
+
+    async shutdown(): Promise<void> {
+        this.stopPeriodicDiscovery();
     }
 }

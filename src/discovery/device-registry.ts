@@ -28,6 +28,16 @@ export class DeviceRegistry {
         const uuidMatch = /uuid:([^:]+)/.exec(response.usn);
         const uuid = uuidMatch?.[1] ?? `${ip}:${port}`;
 
+        // Check if device already exists to preserve details
+        const existingDevice = this.devices.get(uuid);
+        if (existingDevice) {
+            // Update location and network info, but keep other details
+            existingDevice.ip = ip ?? '';
+            existingDevice.port = port;
+            existingDevice.location = response.location;
+            return existingDevice;
+        }
+
         const device: SonosDevice = {
             uuid,
             ip: ip ?? '',
@@ -53,6 +63,12 @@ export class DeviceRegistry {
 
     removeDevice(uuid: string): boolean {
         return this.devices.delete(uuid);
+    }
+
+    updateDevice(device: SonosDevice): void {
+        if (this.devices.has(device.uuid)) {
+            this.devices.set(device.uuid, device);
+        }
     }
 
     clear(): void {
