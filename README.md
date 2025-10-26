@@ -2,9 +2,17 @@
 
 Your comprehensive Sonos control companion powered by the Model Context Protocol (MCP). This intelligent server provides seamless access to Sonos audio devices over your local network using UPnP/SOAP protocols. Whether you're controlling playback, managing zones, browsing your music library, or setting up alarms, this MCP server delivers complete device control directly to your AI assistant, enabling smart home automation and better audio experiences.
 
+**Specifically designed for coding agents and AI-driven home audio automation workflows.** This server enables AI assistants to build intelligent multi-room audio experiences, music library management, zone grouping, queue management, and integration with smart home platforms.
+
 Data is sourced from real-time UPnP/SOAP communication with Sonos devices to ensure accuracy and completeness.
 
 > **📊 Feature Status**: Phase 4 complete! Implements real-time event subscriptions with UPnP GENA protocol for playback, volume, queue, and topology changes. See [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for details.
+
+## 📚 Documentation
+
+- **[Comprehensive Tool Descriptions](./docs/TOOL_DESCRIPTIONS.md)** - Detailed guide for coding agents with use cases, workflows, and best practices for all 50+ tools
+- **[API Reference](./docs/)** - Technical API documentation
+- **[Example Scripts](./scripts/)** - Sample automation scripts and use cases
 
 ## Getting Started
 

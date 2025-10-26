@@ -5,6 +5,19 @@ All notable changes to the Sonos TypeScript MCP Server project.
 ## [Unreleased]
 
 ### Added
+- **Comprehensive Tool Descriptions**: Enhanced all MCP tool descriptions with detailed guidance for AI coding agents
+  - Added "CODING AGENT BENEFITS" sections explaining automation use cases
+  - Included "HOW IT WORKS" technical details for each tool
+  - Provided "BEST PRACTICES FOR AI AGENTS" with implementation guidance
+  - Added "INTELLIGENT AUTOMATION EXAMPLES" showing real-world scenarios
+  - Created comprehensive workflows and troubleshooting guides
+  - Similar to Plugwise MCP server style with extensive educational content
+  - See `docs/TOOL_DESCRIPTIONS.md` for complete reference documentation
+- **Enhanced Server Description**: Updated server metadata with comprehensive overview
+  - Added detailed description of server capabilities and use cases
+  - Included device identification format explanations
+  - Added console logging for server capabilities on startup
+  - Optimized for AI assistant understanding and effective use
 - **Intelligent Device Resolution**: Control devices using friendly names instead of UUIDs
   - Accepts device names (e.g., "Kitchen"), UUIDs, or IP addresses
   - Case-insensitive name matching
@@ -21,12 +34,23 @@ All notable changes to the Sonos TypeScript MCP Server project.
   - Preserves existing device details when re-discovering known devices
   - Graceful shutdown stops periodic discovery timer
   - See `docs/auto-discovery.md` for complete documentation
+- **Documentation Suite**: Created comprehensive documentation in `docs/` folder
+  - `TOOL_DESCRIPTIONS.md`: Complete tool reference with 50+ tools documented
+  - Workflow examples for common scenarios
+  - URI format reference for all media types
+  - Recurrence pattern reference for alarms
+  - Troubleshooting guide for common issues
+  - Best practices for AI agent development
 
 ### Changed
 - **Tool Descriptions**: Updated all `deviceId` parameter descriptions to indicate name support
   - Changed from "Device UUID or IP address" to "Device name (e.g., 'Kitchen'), UUID, or IP address"
   - Makes tool usage more intuitive for LLMs and users
   - Backward compatible with existing UUID and IP-based workflows
+- **README**: Enhanced with links to comprehensive documentation
+  - Added prominent documentation section
+  - Links to tool descriptions, API reference, and examples
+  - Emphasized AI agent and automation use cases
 
 ### Fixed
 - **Phase 4 MCP Tools**: Implemented missing MCP server tools for event subscriptions

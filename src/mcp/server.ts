@@ -34,6 +34,14 @@ export class SonosMcpServer {
             {
                 name: 'sonos-mcp-server',
                 version: '1.3.0',
+                description: `Sonos Multi-Room Audio Control Server. Specifically designed for coding agents and AI-driven home audio automation workflows. Provides comprehensive tools for discovering, controlling, and automating Sonos wireless speaker systems. Enables coding agents to build intelligent multi-room audio experiences, music library management, zone grouping, queue management, and integration with smart home platforms. Supports network discovery, real-time playback control, volume management, EQ settings, alarms, sleep timers, group coordination, and event subscriptions for building responsive audio applications.
+
+All tools require a deviceId parameter which can be:
+- Device name (e.g., "Kitchen", "Living Room") - most user-friendly
+- Device UUID (e.g., "RINCON_xxxxx") - most reliable
+- IP address (e.g., "192.168.1.100") - direct access
+
+Always start with sonos_discover or sonos_list_devices to find available devices before controlling them.`,
             },
             {
                 capabilities: {
@@ -41,6 +49,10 @@ export class SonosMcpServer {
                 },
             }
         );
+
+        console.error('Sonos MCP Server initialized - Multi-Room Audio Control for AI Agents');
+        console.error('Supports: Playback control, volume management, multi-room grouping, music library browsing');
+        console.error('Optimized for: Home audio automation, music streaming, zone coordination, smart scenes');
 
         this.registry = new DeviceRegistry();
         this.resolver = new DeviceResolver(this.registry);
@@ -52,13 +64,57 @@ export class SonosMcpServer {
             tools: [
                 {
                     name: 'sonos_discover',
-                    description: 'Discover Sonos devices on the network using SSDP',
+                    description: `Discover Sonos devices on the local network using SSDP (Simple Service Discovery Protocol). Essential first step for coding agents building Sonos control applications.
+
+CODING AGENT BENEFITS:
+- Build device discovery and setup interfaces for audio applications
+- Create automated device inventory and registration systems
+- Develop network scanning utilities for home audio systems
+- Generate device lists for user selection in control interfaces
+- Build multi-location audio system discovery workflows
+- Create device health monitoring and network diagnostics tools
+
+HOW IT WORKS:
+- Broadcasts SSDP M-SEARCH requests on the local network
+- Listens for Sonos device responses (typically port 1400)
+- Parses device UUIDs, IP addresses, and capabilities
+- Fetches detailed device information (model, room name, firmware)
+- Registers all discovered devices in the device registry
+- Returns comprehensive device list with all metadata
+
+WHAT IT RETURNS:
+- Device UUID (unique identifier like RINCON_xxxxx)
+- IP address and port (usually 192.168.x.x:1400)
+- Room name (e.g., "Kitchen", "Living Room")
+- Model name and number (e.g., "Sonos One", "Beam")
+- Software version and capabilities
+- Discovery timestamp
+
+BEST PRACTICES FOR AI AGENTS:
+- Initial Setup: Always run discovery first in new environments
+- Timeout Selection: Use 5000ms (5s) for most networks, 10000ms (10s) for large homes
+- Periodic Refresh: Re-run discovery after adding/moving devices
+- Error Handling: Handle zero devices gracefully with helpful user guidance
+- Network Requirements: Ensure same subnet as Sonos devices
+- Multi-Network: May need to run on each network segment
+- Caching: Store discovered devices for quick subsequent access
+
+COMMON WORKFLOWS:
+1. First Use: sonos_discover → sonos_list_devices → select device → control
+2. Refresh: sonos_discover (periodic) → update device registry
+3. Troubleshooting: sonos_discover → verify devices reachable
+
+DISCOVERY TIPS:
+- Devices must be powered on and connected to network
+- UPnP/SSDP must not be blocked by firewall
+- Works only on local network (not remote/cloud)
+- May discover non-Sonos UPnP devices (filtered automatically)`,
                     inputSchema: {
                         type: 'object',
                         properties: {
                             timeout: {
                                 type: 'number',
-                                description: 'Discovery timeout in milliseconds (default: 5000)',
+                                description: 'Discovery timeout in milliseconds. Longer timeouts find more devices in large networks but take more time. Recommended: 5000ms for small networks, 10000ms for large homes. Default: 5000ms',
                                 default: 5000,
                             },
                         },
@@ -66,22 +122,78 @@ export class SonosMcpServer {
                 },
                 {
                     name: 'sonos_add_device',
-                    description: 'Manually add a Sonos device by IP address (useful when SSDP discovery fails)',
+                    description: `Manually add a Sonos device by IP address. Critical fallback for coding agents when automatic SSDP discovery fails due to network restrictions or firewall rules.
+
+CODING AGENT BENEFITS:
+- Build manual device registration interfaces for restricted networks
+- Create static device configuration systems for enterprise environments
+- Develop fallback discovery mechanisms for reliable device access
+- Generate device provisioning workflows for IT deployment
+- Build cross-VLAN device registration tools
+- Create VPN-based remote device access systems
+
+HOW IT WORKS:
+- Accepts IP address and optional port (default 1400)
+- Validates device accessibility with test SOAP call
+- Fetches device UUID from device_description.xml
+- Retrieves room name, model, and firmware information
+- Registers device in local device registry
+- Makes device immediately available for control
+
+WHEN TO USE:
+- SSDP discovery blocked by firewall/network policy
+- Devices on different VLAN/subnet
+- Corporate networks with UPnP disabled
+- Known static IP addresses preferred
+- Remote access through VPN
+- Troubleshooting specific device connectivity
+
+DEVICE CONNECTIVITY:
+- Standard Sonos port: 1400 (HTTP)
+- Device must be network-accessible from agent
+- Requires HTTP access to /xml/device_description.xml
+- No authentication required (local network trust model)
+
+BEST PRACTICES FOR AI AGENTS:
+- Validation: Verify IP is reachable before adding
+- Port Default: Use 1400 unless custom port known
+- Name Override: Allow user to set friendly name if auto-detect fails
+- Error Messages: Provide clear guidance on connectivity issues
+- Fallback Chain: Try discovery first, then manual add
+- Documentation: Guide users to find device IP (router DHCP, Sonos app)
+- Static IPs: Recommend static IP assignment for manually added devices
+
+IP ADDRESS DISCOVERY GUIDANCE:
+- Check router's DHCP client list
+- Use Sonos mobile app: Settings → System → About My System
+- Network scanner tools (nmap, Fing, etc.)
+- Check device display (if available)
+- mDNS/Bonjour browser (look for _sonos._tcp)
+
+COMMON WORKFLOWS:
+1. Discovery Failed: sonos_discover (fails) → sonos_add_device (manual)
+2. Static Config: sonos_add_device → store in config → use directly
+3. Remote Access: VPN connect → sonos_add_device → control
+
+ERROR SCENARIOS:
+- "Cannot reach device": IP incorrect, device offline, or network blocked
+- "Not a Sonos device": Wrong IP or port, or non-Sonos UPnP device
+- "Timeout": Network latency too high or firewall delay`,
                     inputSchema: {
                         type: 'object',
                         properties: {
                             ip: {
                                 type: 'string',
-                                description: 'IP address of the Sonos device',
+                                description: 'IP address of the Sonos device (e.g., "192.168.1.150"). Must be reachable on the local network or through VPN. Can be found in router DHCP list or Sonos app settings.',
                             },
                             port: {
                                 type: 'number',
-                                description: 'Port number (default: 1400)',
+                                description: 'Port number for Sonos HTTP API. Default: 1400 (standard for all Sonos devices). Only change if using custom port forwarding.',
                                 default: 1400,
                             },
                             name: {
                                 type: 'string',
-                                description: 'Optional name for the device',
+                                description: 'Optional friendly name for the device (e.g., "Kitchen Speaker"). If not provided, will auto-fetch from device. Useful for custom naming or when auto-detection fails.',
                             },
                         },
                         required: ['ip'],
@@ -89,7 +201,50 @@ export class SonosMcpServer {
                 },
                 {
                     name: 'sonos_list_devices',
-                    description: 'List all discovered Sonos devices',
+                    description: `List all discovered and registered Sonos devices. Essential for coding agents building device selection interfaces and system status dashboards.
+
+CODING AGENT BENEFITS:
+- Build device selector dropdowns and picker UIs
+- Create system status dashboards showing all speakers
+- Generate device inventory and asset management reports
+- Develop multi-room audio control interfaces
+- Build zone-based automation logic
+- Create device health monitoring displays
+
+WHAT IT RETURNS:
+- Complete list of all registered devices with full metadata
+- Device UUID (unique identifier, never changes)
+- Current IP address and port
+- Room name (user-assigned friendly name)
+- Model name and number (hardware type)
+- Software version (firmware version)
+- Registration timestamp and method (discovered vs manual)
+
+DATA SOURCES:
+- Devices from automatic SSDP discovery
+- Manually added devices (via sonos_add_device)
+- Cached device information with latest updates
+- Persistent device registry (survives restarts)
+
+BEST PRACTICES FOR AI AGENTS:
+- Pre-Control Check: Always list devices before attempting control
+- Device Selection: Present list to user for choosing target device
+- Status Display: Show device count and online status
+- Empty State: Handle zero devices with discovery guidance
+- Refresh Strategy: Re-list after discovery or add operations
+- Multi-Device: Use for building room/zone selectors
+- Validation: Verify deviceId exists before control commands
+
+DEVICE IDENTIFICATION:
+Each device can be referenced by:
+1. Room name: "Kitchen" (most user-friendly)
+2. UUID: "RINCON_B8E9373C90DC01400" (most reliable)
+3. IP address: "192.168.1.150" (direct access)
+
+COMMON WORKFLOWS:
+1. Setup: sonos_discover → sonos_list_devices → show to user
+2. Control: sonos_list_devices → user selects → execute command
+3. Monitoring: sonos_list_devices (periodic) → display status`,
                     inputSchema: {
                         type: 'object',
                         properties: {},
@@ -97,13 +252,68 @@ export class SonosMcpServer {
                 },
                 {
                     name: 'sonos_play',
-                    description: 'Start playback on a Sonos device',
+                    description: `Start or resume playback on a Sonos device. Core function for coding agents building music playback automation and voice control systems.
+
+CODING AGENT BENEFITS:
+- Build play/pause buttons in audio control interfaces
+- Create voice command handlers ("play music")
+- Develop automated playback scheduling (morning music routines)
+- Generate scene-based audio automation (dinner party mode)
+- Build gesture or sensor-triggered playback
+- Create multi-room synchronized playback triggers
+
+HOW IT WORKS:
+- Resumes playback if paused
+- Starts from beginning if stopped
+- Continues from current queue position
+- Respects current volume and EQ settings
+- Works with any audio source (queue, streaming, line-in, etc.)
+- Immediate response (typically <100ms)
+
+PLAYBACK SOURCES:
+- Queue: Plays from the device's playback queue
+- Streaming Services: Spotify, Apple Music, etc. (if already playing)
+- Radio: TuneIn, iHeartRadio stations
+- Line-In: Connected audio device
+- TV: Sonos soundbar TV input
+- Airplay: Airplay 2 stream
+
+BEST PRACTICES FOR AI AGENTS:
+- State Check: Use sonos_get_transport_info first to see current state
+- User Feedback: Confirm playback started with visual/audio cue
+- Error Handling: Handle empty queue gracefully
+- Group Coordination: Play affects entire group (not just one device)
+- Volume Safety: Check volume before playing (avoid sudden loud music)
+- Source Awareness: Different sources behave differently on play
+
+MULTI-ROOM BEHAVIOR:
+- If device is group coordinator: All group members play
+- If device is group member: Entire group plays (coordinator controls)
+- Use sonos_get_zone_groups to understand group topology
+
+INTELLIGENT AUTOMATION EXAMPLES:
+- Morning Routine: 7:00 AM → sonos_play ("Kitchen")
+- Motion Detected: Entry sensor → sonos_play ("Hallway")
+- Voice Command: "Play music" → sonos_play (current room)
+- Scene Activation: "Dinner party" → sonos_play (all downstairs rooms)
+- Geofencing: Arrive home → sonos_play ("Living Room")
+- Calendar Integration: Meeting ends → sonos_play ("Office")
+
+COMMON WORKFLOWS:
+1. Simple Play: sonos_play → music starts
+2. Resume: sonos_pause → (pause) → sonos_play → resume from same position
+3. Check First: sonos_get_transport_info → if paused → sonos_play
+
+ERROR SCENARIOS:
+- Empty Queue: Nothing happens if no tracks in queue and no active stream
+- Device Offline: Command fails if device unreachable
+- Group Conflict: May fail if group topology changing`,
                     inputSchema: {
                         type: 'object',
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
+                                description: 'Device identifier: room name (e.g., "Kitchen"), UUID (e.g., "RINCON_xxxxx"), or IP address (e.g., "192.168.1.100"). If device is in a group, playback affects entire group.',
                             },
                         },
                         required: ['deviceId'],
@@ -111,13 +321,61 @@ export class SonosMcpServer {
                 },
                 {
                     name: 'sonos_pause',
-                    description: 'Pause playback on a Sonos device',
+                    description: `Pause playback on a Sonos device. Essential for coding agents building playback control and automation systems.
+
+CODING AGENT BENEFITS:
+- Build pause buttons in audio control interfaces
+- Create voice command handlers ("pause music")
+- Develop automated silence triggers (phone call detection)
+- Generate doorbell/notification pause automation
+- Build presence-based audio pause (leaving room)
+- Create calendar-integrated quiet time enforcement
+
+HOW IT WORKS:
+- Pauses current playback immediately
+- Maintains current position in track and queue
+- Preserves all playback settings (volume, EQ, etc.)
+- Can be resumed with sonos_play
+- Affects entire group if device is grouped
+- Idempotent: safe to call multiple times
+
+PAUSE VS STOP:
+- Pause: Maintains state, quick resume, keeps position
+- Stop: Clears some state, may reset position
+- Recommendation: Use pause for temporary interruptions
+
+BEST PRACTICES FOR AI AGENTS:
+- User Feedback: Confirm pause with visual indicator
+- State Tracking: Update UI to show paused state
+- Group Awareness: Pause affects all grouped devices
+- Resume Logic: Store pause reason for smart auto-resume
+- Timeout: Consider auto-resume after timeout (e.g., 5 minutes)
+- Notification: Alert user if pause was automated
+
+INTELLIGENT AUTOMATION EXAMPLES:
+- Phone Call: Call incoming → sonos_pause (all rooms)
+- Doorbell: Ring detected → sonos_pause → announce visitor
+- Voice Command: "Pause music" → sonos_pause (current room)
+- Motion Absence: No motion 10 min → sonos_pause → energy saving
+- Calendar Event: Meeting starts → sonos_pause ("Office")
+- Smart Scenes: "Goodnight" routine → sonos_pause (all devices)
+- Presence Detection: All people leave → sonos_pause (entire home)
+
+AUTO-RESUME SCENARIOS:
+- Store pause timestamp and reason
+- Auto-resume after: call ends, doorbell timeout, return to room
+- User preference: ask if should resume or stay paused
+
+COMMON WORKFLOWS:
+1. Simple Pause: sonos_pause → music pauses
+2. Pause-Resume: sonos_pause → (wait) → sonos_play → resume
+3. Conditional Pause: if playing → sonos_pause`,
                     inputSchema: {
                         type: 'object',
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
+                                description: 'Device identifier: room name (e.g., "Kitchen"), UUID, or IP address. Pauses entire group if device is grouped.',
                             },
                         },
                         required: ['deviceId'],
