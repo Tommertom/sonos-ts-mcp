@@ -109,6 +109,7 @@ To configure Windsurf Editor, edit the file `~/.codeium/windsurf/mcp_config.json
 
 This MCP server provides comprehensive control of your Sonos audio system:
 
+- **Intelligent Device Resolution**: Control devices by friendly name (e.g., "Kitchen") instead of UUIDs ✨ NEW
 - **Automatic Discovery**: Discovers devices on startup and every 5 minutes ✨ NEW
 - **Device Discovery**: Manual SSDP-based discovery of Sonos devices
 - **Playback Control**: Play, pause, stop, next, previous
@@ -444,9 +445,10 @@ The server will test connectivity to the device before adding it to the registry
 
 ## Documentation
 
-- � [Installation Guide](./docs/installation-guide.md) - Detailed installation and configuration instructions
-- � [API Testing Guide](./docs/api-testing-guide.md) - Comprehensive test suite documentation ✨ NEW
-- � [Implementation Guide](./docs/implementation-guide.md) - Tool usage and examples
+- 📦 [Installation Guide](./docs/installation-guide.md) - Detailed installation and configuration instructions
+- 🎯 [Device Resolution Guide](./docs/device-resolution.md) - Using friendly device names ✨ NEW
+- 🧪 [API Testing Guide](./docs/api-testing-guide.md) - Comprehensive test suite documentation
+- 📘 [Implementation Guide](./docs/implementation-guide.md) - Tool usage and examples
 - 🏗️ [Technical Architecture](./docs/technical-architecture.md) - System design details
 - 📚 [Phase Completion Docs](./docs/) - PHASE-1-COMPLETE.md through PHASE-4-COMPLETE.md
 

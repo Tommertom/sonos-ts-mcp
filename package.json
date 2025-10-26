@@ -18,6 +18,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:discovery": "tsx scripts/test-discovery.ts",
+    "test:resolution": "tsx scripts/test-device-resolution.ts",
     "test:events": "tsx scripts/test-events.ts",
     "test:phase1": "tsx scripts/test-phase1.ts",
     "test:phase2": "tsx scripts/test-phase2.ts",

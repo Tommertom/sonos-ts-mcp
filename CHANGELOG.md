@@ -5,6 +5,15 @@ All notable changes to the Sonos TypeScript MCP Server project.
 ## [Unreleased]
 
 ### Added
+- **Intelligent Device Resolution**: Control devices using friendly names instead of UUIDs
+  - Accepts device names (e.g., "Kitchen"), UUIDs, or IP addresses
+  - Case-insensitive name matching
+  - Supports partial name matching when unambiguous
+  - Helpful error messages when devices are not found or names are ambiguous
+  - New `DeviceResolver` class handles all resolution logic
+  - All MCP tools now accept friendly device names
+  - Resolution priority: UUID → IP → Exact name → Partial name
+  - See `docs/device-resolution.md` for complete documentation
 - **Automatic Discovery**: Server now automatically discovers devices on startup and every 5 minutes
   - Initial discovery runs immediately after server starts
   - Periodic discovery every 5 minutes (300 seconds) keeps device registry updated
@@ -12,6 +21,12 @@ All notable changes to the Sonos TypeScript MCP Server project.
   - Preserves existing device details when re-discovering known devices
   - Graceful shutdown stops periodic discovery timer
   - See `docs/auto-discovery.md` for complete documentation
+
+### Changed
+- **Tool Descriptions**: Updated all `deviceId` parameter descriptions to indicate name support
+  - Changed from "Device UUID or IP address" to "Device name (e.g., 'Kitchen'), UUID, or IP address"
+  - Makes tool usage more intuitive for LLMs and users
+  - Backward compatible with existing UUID and IP-based workflows
 
 ### Fixed
 - **Phase 4 MCP Tools**: Implemented missing MCP server tools for event subscriptions
@@ -23,11 +38,22 @@ All notable changes to the Sonos TypeScript MCP Server project.
   - Event subscription system is now fully usable via MCP protocol
 
 ### Documentation
+- Created `docs/device-resolution.md` with comprehensive device resolution documentation
+- Added device resolution guide to README.md documentation section
+- Updated README.md features list to highlight intelligent device resolution
 - Updated `docs/PHASE-4-COMPLETE.md` with MCP tool documentation and usage examples
 - Added Phase 4 event subscription tools to README.md tool listing
 - Created `docs/auto-discovery.md` with comprehensive auto-discovery documentation
-- Updated README.md to highlight automatic discovery feature
 - Updated implementation guide with auto-discovery notes
+
+### Testing
+- Added comprehensive test suite for `DeviceResolver` class (15 tests)
+  - Tests for UUID, IP, and name resolution
+  - Tests for case-insensitive and partial matching
+  - Tests for ambiguity detection and error handling
+  - Tests for whitespace handling
+- Created `scripts/test-device-resolution.ts` demonstration script
+- Added `npm run test:resolution` command to package.json
 
 ## [1.4.0] - 2025-10-13 - Phase 4 Complete
 

@@ -9,6 +9,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { SsdpClient } from '../discovery/ssdp-client.js';
 import { DeviceRegistry } from '../discovery/device-registry.js';
+import { DeviceResolver } from './device-resolver.js';
 import { AVTransportService } from '../services/av-transport.js';
 import { RenderingControlService } from '../services/rendering-control.js';
 import { ZoneGroupTopologyService } from '../services/zone-topology.js';
@@ -24,6 +25,7 @@ import type { SonosDevice } from '../types/sonos.js';
 export class SonosMcpServer {
     private server: Server;
     private registry: DeviceRegistry;
+    private resolver: DeviceResolver;
     private discoveryInterval: NodeJS.Timeout | null = null;
     private readonly DISCOVERY_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -41,6 +43,7 @@ export class SonosMcpServer {
         );
 
         this.registry = new DeviceRegistry();
+        this.resolver = new DeviceResolver(this.registry);
         this.setupHandlers();
     }
 
@@ -100,7 +103,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -114,7 +117,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -128,7 +131,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -142,7 +145,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -156,7 +159,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -170,7 +173,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             volume: {
                                 type: 'number',
@@ -190,7 +193,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -204,7 +207,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             mute: {
                                 type: 'boolean',
@@ -222,7 +225,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -236,7 +239,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -250,7 +253,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -264,7 +267,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             startIndex: {
                                 type: 'number',
@@ -288,7 +291,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             uri: {
                                 type: 'string',
@@ -319,7 +322,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             position: {
                                 type: 'number',
@@ -337,7 +340,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -351,7 +354,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             position: {
                                 type: 'number',
@@ -369,7 +372,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             title: {
                                 type: 'string',
@@ -387,7 +390,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             shuffle: {
                                 type: 'boolean',
@@ -405,7 +408,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             mode: {
                                 type: 'string',
@@ -424,7 +427,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             enabled: {
                                 type: 'boolean',
@@ -442,7 +445,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -457,11 +460,11 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address to join from',
+                                description: 'Device name (e.g., "Bedroom"), UUID, or IP address to join from',
                             },
                             masterDeviceId: {
                                 type: 'string',
-                                description: 'Master/coordinator device UUID or IP address to join to',
+                                description: 'Master/coordinator device name (e.g., "Living Room"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId', 'masterDeviceId'],
@@ -475,7 +478,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -490,7 +493,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             startIndex: {
                                 type: 'number',
@@ -514,7 +517,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             startIndex: {
                                 type: 'number',
@@ -538,7 +541,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             startIndex: {
                                 type: 'number',
@@ -562,7 +565,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             startIndex: {
                                 type: 'number',
@@ -586,7 +589,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             startIndex: {
                                 type: 'number',
@@ -610,7 +613,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             searchType: {
                                 type: 'string',
@@ -643,7 +646,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             objectId: {
                                 type: 'string',
@@ -672,7 +675,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             bass: {
                                 type: 'number',
@@ -692,7 +695,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             treble: {
                                 type: 'number',
@@ -712,7 +715,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             enabled: {
                                 type: 'boolean',
@@ -730,7 +733,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -744,7 +747,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             enabled: {
                                 type: 'boolean',
@@ -762,7 +765,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             enabled: {
                                 type: 'boolean',
@@ -781,7 +784,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             duration: {
                                 type: 'string',
@@ -799,7 +802,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -813,7 +816,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -828,7 +831,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -842,7 +845,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             startTime: {
                                 type: 'string',
@@ -881,7 +884,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             alarmId: {
                                 type: 'string',
@@ -917,7 +920,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             alarmId: {
                                 type: 'string',
@@ -936,7 +939,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -950,7 +953,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             snapshot: {
                                 type: 'string',
@@ -974,7 +977,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address (coordinator)',
+                                description: 'Device name (e.g., "Living Room"), UUID, or IP address (will become group coordinator)',
                             },
                         },
                         required: ['deviceId'],
@@ -989,7 +992,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             service: {
                                 type: 'string',
@@ -1013,7 +1016,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                             subscriptionId: {
                                 type: 'string',
@@ -1031,7 +1034,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -1045,7 +1048,7 @@ export class SonosMcpServer {
                         properties: {
                             deviceId: {
                                 type: 'string',
-                                description: 'Device UUID or IP address',
+                                description: 'Device name (e.g., "Kitchen"), UUID, or IP address',
                             },
                         },
                         required: ['deviceId'],
@@ -1298,14 +1301,7 @@ export class SonosMcpServer {
     }
 
     private getDevice(deviceId: string) {
-        let device = this.registry.getDevice(deviceId);
-        if (!device) {
-            device = this.registry.getDeviceByIp(deviceId);
-        }
-        if (!device) {
-            throw new Error(`Device not found: ${deviceId}`);
-        }
-        return device;
+        return this.resolver.resolve(deviceId);
     }
 
     private async handlePlay(args: unknown) {
