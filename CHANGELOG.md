@@ -4,6 +4,18 @@ All notable changes to the Sonos TypeScript MCP Server project.
 
 ## [Unreleased]
 
+### Changed
+- **MCP Tool Descriptions**: Completely revised all 60+ tool descriptions to follow MCP best practices
+  - Reduced verbose descriptions (50-100 lines) to concise 2-4 sentences
+  - Standardized `deviceId` parameter descriptions: "Room name, UUID, or IP address"
+  - Removed marketing language and internal implementation details
+  - Added clarifying behavioral notes (e.g., "affects entire group if device is grouped")
+  - Enhanced with specific examples and format details where helpful
+  - Follows Model Context Protocol (MCP) specification 2025-06-18 guidelines
+  - See `docs/mcp-best-practices-review.md` for comprehensive analysis
+  - See `docs/tool-description-examples.md` for before/after examples
+  - See `docs/tool-description-updates-completed.md` for complete update summary
+
 ### Added
 - **Comprehensive Tool Descriptions**: Enhanced all MCP tool descriptions with detailed guidance for AI coding agents
   - Added "CODING AGENT BENEFITS" sections explaining automation use cases
