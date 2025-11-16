@@ -1,6 +1,6 @@
 {
   "name": "sonos-ts-mcp",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Model Context Protocol server for Sonos audio devices",
   "type": "module",
   "main": "dist/index.js",
