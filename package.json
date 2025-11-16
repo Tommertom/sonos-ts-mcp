@@ -25,6 +25,7 @@
     "test:phase3": "tsx scripts/test-phase3.ts",
     "test:phase4": "tsx scripts/test-phase4.ts",
     "test:all-phases": "tsx scripts/test-all-phases.ts",
+    "test:mcp-stdio": "tsx scripts/test-mcp-stdio.ts",
     "lint": "eslint src tests",
     "format": "prettier --write src tests",
     "typecheck": "tsc --noEmit",
