@@ -125,7 +125,7 @@ async function main() {
             console.log('');
         });
 
-        console.log('✅ Auto-discovery test completed successfully!\n');
+        console.error('✅ Auto-discovery test completed successfully!\n');
 
     } catch (error) {
         console.error('❌ Error during discovery:', error);

@@ -6,7 +6,7 @@ import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 export const discoveryTools: Tool[] = [
     {
         name: 'sonos_discover',
-        description: 'Discover Sonos devices on the local network using SSDP. Returns device UUID, IP address, room name, model, and firmware version. Use 5000-10000ms timeout based on network size.',
+        description: 'Actively scan the network for Sonos devices using SSDP. Always call this when the sonos_list_devices tool returns empty or you are missing a device. Returns device UUID, IP address, room name, model, and firmware version. Use room name to communicate with the user.',
         inputSchema: {
             type: 'object',
             properties: {
@@ -43,7 +43,7 @@ export const discoveryTools: Tool[] = [
     },
     {
         name: 'sonos_list_devices',
-        description: 'List all discovered and registered Sonos devices with their UUID, IP address, room name, model, and software version. Essential for device selection and status checks.',
+        description: 'List devices currently in the registry. Note: Call sonos_discover first to populate the registry if a device is not found in the current registry. Returns UUID, IP address, room name, model, and software version of registered devices. Use room name to communicate with the user.',
         inputSchema: {
             type: 'object',
             properties: {},

@@ -99,6 +99,7 @@ export async function handleAddDevice(args: unknown, context: ServerContext): Pr
  */
 export function handleListDevices(_args: unknown, context: ServerContext): Promise<ToolResponse> {
     const devices = context.registry.getAllDevices();
+
     return Promise.resolve({
         content: [
             {

@@ -24,7 +24,7 @@ export class ServerContext {
     async resolveDevice(identifier: string): Promise<SonosDevice> {
         try {
             return this.resolver.resolve(identifier);
-        } catch (error) {
+        } catch {
             // If not found, try discovery once
             console.error(`[DeviceResolver] Device "${identifier}" not found, attempting discovery...`);
             await this.performAutoDiscovery();

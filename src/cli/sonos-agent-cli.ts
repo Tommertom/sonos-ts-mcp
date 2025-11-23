@@ -123,13 +123,73 @@ async function runAgent(options: CliOptions): Promise<void> {
 
         const agent = mastra.getAgent('sonosAgent');
 
-        const result = await agent.generate(options.prompt);
+        const result = await agent.generate(options.prompt, {
+            maxSteps: 10,
+            onStepFinish: ({ toolCalls, toolResults }) => {
+                if (toolCalls && toolCalls.length > 0) {
+                    console.log(`\n[Agent] ${toolCalls.length} tool call(s) in this step`);
+                }
+                if (toolResults && toolResults.length > 0) {
+                    console.log(`[Agent] ${toolResults.length} tool result(s) received\n`);
+                    toolResults.forEach((toolResult, idx: number) => {
+                        const result = toolResult.payload.result;
+                        if (result) {
+                            const resultText = typeof result === 'string'
+                                ? result.substring(0, 200)
+                                : JSON.stringify(result).substring(0, 200);
+                            console.log(`  Result ${idx + 1}: ${resultText}...`);
+                        }
+                    });
+                }
+            },
+        });
 
         console.log('\n' + '='.repeat(60));
         console.log('AGENT RESPONSE:');
         console.log('='.repeat(60));
-        console.log(result.text);
+        console.log(result.text || '(no text response)');
         console.log('='.repeat(60) + '\n');
+
+        // Debug: show reasoning steps
+        if (result.steps && result.steps.length > 0) {
+            console.log('[Debug] Agent completed', result.steps.length, 'reasoning step(s):');
+            result.steps.forEach((step: any, idx: number) => {
+                const hasText = step.text && step.text.trim().length > 0;
+                const hasToolCalls = step.toolCalls && step.toolCalls.length > 0;
+                const hasToolResults = step.toolResults && step.toolResults.length > 0;
+
+                let stepType = '';
+                if (hasToolCalls && hasText) {
+                    stepType = 'Tool execution + reasoning';
+                } else if (hasToolCalls) {
+                    stepType = 'Tool execution';
+                } else if (hasText) {
+                    stepType = 'Final response';
+                } else {
+                    stepType = 'Unknown';
+                }
+
+                console.log(`  Step ${idx + 1} [${stepType}]:`);
+
+                if (hasToolCalls) {
+                    step.toolCalls.forEach((call: any) => {
+                        // The tool information is in call.payload
+                        const toolName = call.payload?.toolName || call.toolName || call.name || call.type || 'unknown';
+                        const args = call.payload?.args || call.args;
+                        const argsInfo = args ? ` (${Object.keys(args).join(', ')})` : '';
+                        console.log(`    → ${toolName}${argsInfo}`);
+                    });
+                }
+
+                if (hasText) {
+                    const textPreview = step.text.length > 100
+                        ? step.text.substring(0, 100) + '...'
+                        : step.text;
+                    console.log(`    Response: "${textPreview}"`);
+                }
+            });
+            console.log('');
+        }
 
     } catch (error) {
         console.error('[CLI] Error:', error);

@@ -3,7 +3,7 @@ import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 
 export interface SonosAgentConfig {
-    tools: Record<string, any>;
+    tools: Record<string, unknown>;
     model?: string;
 }
 
@@ -18,17 +18,17 @@ export function createSonosAgent(config: SonosAgentConfig): Agent {
         id: 'sonos-control-agent',
         name: 'Sonos Control Agent',
         description: 'An AI agent specialized in controlling Sonos multi-room audio systems.',
-        instructions: `You are a Sonos control expert. CRITICAL: Always call sonos_list_devices or sonos_discover FIRST before any other action to see available devices.
+        instructions: `You control Sonos devices. 
 
-Required workflow:
-1. Call sonos_list_devices or sonos_discover to get devices
-2. Use device room names (e.g., "Badkamer", "Living Room") as deviceId
-3. Execute the requested action with appropriate tools
-4. Report results clearly
+CRITICAL: Your first action must ALWAYS be to call the sonos_discover tool.
 
-Device identification: Use room names from the device list as the deviceId parameter.
+Steps:
+1. Call sonos_discover (no arguments needed)
+2. Identify the room name from results
+3. Use room name as deviceId for other tools
+4. Execute the requested action
 
-Be concise and always verify devices exist before attempting control actions.`,
+Example: For "What's playing in Badkamer?" → call sonos_discover, find "Badkamer" device, then call playback status tool with deviceId="Badkamer".`,
         model: model,
         tools: config.tools,
     });
