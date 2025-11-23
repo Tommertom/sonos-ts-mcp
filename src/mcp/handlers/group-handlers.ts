@@ -6,7 +6,7 @@ import { ZoneGroupTopologyService } from '../../services/zone-topology.js';
  */
 export async function handleGetZoneGroups(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new ZoneGroupTopologyService(device);
     const groups = await service.getZoneGroupState();
 
@@ -25,8 +25,8 @@ export async function handleGetZoneGroups(args: unknown, context: ServerContext)
  */
 export async function handleJoinGroup(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, masterDeviceId } = args as { deviceId: string; masterDeviceId: string };
-    const device = context.resolver.resolve(deviceId);
-    const masterDevice = context.resolver.resolve(masterDeviceId);
+    const device = await context.resolveDevice(deviceId);
+    const masterDevice = await context.resolveDevice(masterDeviceId);
 
     const service = new ZoneGroupTopologyService(device);
     const success = await service.join(masterDevice.uuid);
@@ -48,7 +48,7 @@ export async function handleJoinGroup(args: unknown, context: ServerContext): Pr
  */
 export async function handleUnjoin(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new ZoneGroupTopologyService(device);
     const success = await service.unjoin();
 
@@ -69,7 +69,7 @@ export async function handleUnjoin(args: unknown, context: ServerContext): Promi
  */
 export async function handlePartyMode(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId } = args as { deviceId: string };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const topologyService = new ZoneGroupTopologyService(device);
 
     // Get all groups and join all other devices to this one

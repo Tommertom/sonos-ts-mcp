@@ -113,6 +113,37 @@ To configure Windsurf Editor, edit the file `~/.codeium/windsurf/mcp_config.json
 }
 ```
 
+## Testing with an Agent
+
+You can quickly test the MCP server using the built-in CLI agent, which uses natural language to interact with your Sonos system:
+
+```bash
+# Run directly with npx (no installation required)
+npx sonos-agent-cli "Play jazz in the living room"
+
+# Use a specific AI model
+npx sonos-agent-cli "What's playing in the kitchen?" --model gpt-4o
+
+# Use Gemini models
+npx sonos-agent-cli "Set volume to 50 in all rooms" --model gemini-3-pro-preview
+```
+
+**Required Environment Variables:**
+
+- `OPENAI_API_KEY`: For OpenAI models (gpt-4o, gpt-4o-mini, etc.)
+- `GOOGLE_GENERATIVE_AI_API_KEY`: For Gemini models
+- `SONOS_AGENT_MODEL`: Set a default model (optional)
+
+**Build Behavior:**
+
+The CLI automatically builds the MCP server before running to ensure the latest code is used. To skip the build (e.g., during rapid testing), use `--skip-build`:
+
+```bash
+npx sonos-agent-cli "Play music" --skip-build
+```
+
+This agent provides an easy way to verify that the MCP server is working correctly and can communicate with your Sonos devices.
+
 ## Features
 
 This MCP server provides comprehensive control of your Sonos audio system:
@@ -310,6 +341,27 @@ npm run start:stdio
 # or
 tsx scripts/start-mcp-stdio.ts
 ```
+
+#### CLI Agent
+
+The project includes a CLI agent powered by Mastra that allows you to control your Sonos system using natural language.
+
+```bash
+# Run with default model (gpt-4o-mini)
+npx sonos-agent-cli "Play jazz in the living room"
+
+# Run with a specific model
+npx sonos-agent-cli "Play jazz in the living room" --model gpt-4o
+
+# Run with Gemini 3
+npx sonos-agent-cli "Play jazz in the living room" --model gemini-3-pro-preview
+```
+
+**Environment Variables:**
+
+- `OPENAI_API_KEY`: Required for OpenAI models (default)
+- `GOOGLE_GENERATIVE_AI_API_KEY`: Required for Gemini models
+- `SONOS_AGENT_MODEL`: Set the default model (optional, e.g., `gemini-3-pro-preview`)
 
 #### SSE Mode (HTTP Server)
 

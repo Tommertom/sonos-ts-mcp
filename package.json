@@ -11,9 +11,9 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "npm run build",
-    "dev": "tsx src/index.ts",
     "build": "tsc",
+    "agent": "tsx src/cli/sonos-agent-cli.ts",
+    "agent:build": "npm run build && tsx src/cli/sonos-agent-cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -43,8 +43,14 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.42",
+    "@ai-sdk/openai": "^2.0.71",
+    "@mastra/core": "^0.24.5",
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "xml2js": "^0.6.2"
+    "ai": "^5.0.100",
+    "dotenv": "^17.2.3",
+    "xml2js": "^0.6.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

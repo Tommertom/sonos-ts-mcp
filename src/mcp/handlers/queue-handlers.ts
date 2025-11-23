@@ -11,7 +11,7 @@ export async function handleGetQueue(args: unknown, context: ServerContext): Pro
         startIndex?: number;
         count?: number;
     };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const queue = await service.getQueue(startIndex, count);
 
@@ -36,7 +36,7 @@ export async function handleAddToQueue(args: unknown, context: ServerContext): P
         position?: number;
         playNext?: boolean;
     };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const trackNumber = await service.addToQueue({
         uri,
@@ -63,7 +63,7 @@ export async function handleAddToQueue(args: unknown, context: ServerContext): P
  */
 export async function handleRemoveFromQueue(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, position } = args as { deviceId: string; position: number };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.removeFromQueue(position);
 
@@ -84,7 +84,7 @@ export async function handleRemoveFromQueue(args: unknown, context: ServerContex
  */
 export async function handleClearQueue(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.removeAllTracksFromQueue();
 
@@ -103,7 +103,7 @@ export async function handleClearQueue(args: unknown, context: ServerContext): P
  */
 export async function handlePlayFromQueue(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, position } = args as { deviceId: string; position: number };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.playFromQueue(position);
 
@@ -124,7 +124,7 @@ export async function handlePlayFromQueue(args: unknown, context: ServerContext)
  */
 export async function handleSaveQueue(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, title } = args as { deviceId: string; title: string };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const playlistId = await service.saveQueue(title);
 
@@ -147,7 +147,7 @@ export async function handleSaveQueue(args: unknown, context: ServerContext): Pr
  */
 export async function handleSetShuffle(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, shuffle } = args as { deviceId: string; shuffle: boolean };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.setShuffle(shuffle);
 
@@ -168,7 +168,7 @@ export async function handleSetShuffle(args: unknown, context: ServerContext): P
  */
 export async function handleSetRepeat(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, mode } = args as { deviceId: string; mode: 'off' | 'all' | 'one' };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.setRepeat(mode);
 
@@ -187,7 +187,7 @@ export async function handleSetRepeat(args: unknown, context: ServerContext): Pr
  */
 export async function handleSetCrossfade(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.setCrossFade(enabled);
 
@@ -208,7 +208,7 @@ export async function handleSetCrossfade(args: unknown, context: ServerContext):
  */
 export async function handleGetPlaybackState(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
 
     const [shuffle, repeat, crossfade, transportInfo] = await Promise.all([

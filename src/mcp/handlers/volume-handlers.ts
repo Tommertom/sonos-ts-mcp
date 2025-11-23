@@ -6,7 +6,7 @@ import { RenderingControlService } from '../../services/rendering-control.js';
  */
 export async function handleSetVolume(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, volume } = args as { deviceId: string; volume: number };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     const success = await service.setVolume(volume);
 
@@ -25,7 +25,7 @@ export async function handleSetVolume(args: unknown, context: ServerContext): Pr
  */
 export async function handleGetVolume(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     const volume = await service.getVolume();
 
@@ -44,7 +44,7 @@ export async function handleGetVolume(args: unknown, context: ServerContext): Pr
  */
 export async function handleSetMute(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, mute } = args as { deviceId: string; mute: boolean };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     const success = await service.setMute(mute);
 
@@ -63,7 +63,7 @@ export async function handleSetMute(args: unknown, context: ServerContext): Prom
  */
 export async function handleSetBass(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, bass } = args as { deviceId: string; bass: number };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     await service.setBass(bass);
 
@@ -82,7 +82,7 @@ export async function handleSetBass(args: unknown, context: ServerContext): Prom
  */
 export async function handleSetTreble(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, treble } = args as { deviceId: string; treble: number };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     await service.setTreble(treble);
 
@@ -101,7 +101,7 @@ export async function handleSetTreble(args: unknown, context: ServerContext): Pr
  */
 export async function handleSetLoudness(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     await service.setLoudness(enabled);
 
@@ -120,7 +120,7 @@ export async function handleSetLoudness(args: unknown, context: ServerContext): 
  */
 export async function handleGetEQ(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId } = args as { deviceId: string };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
 
     const bass = await service.getBass();
@@ -142,7 +142,7 @@ export async function handleGetEQ(args: unknown, context: ServerContext): Promis
  */
 export async function handleSetNightMode(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     await service.setNightMode(enabled);
 
@@ -161,7 +161,7 @@ export async function handleSetNightMode(args: unknown, context: ServerContext):
  */
 export async function handleSetDialogMode(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const { deviceId, enabled } = args as { deviceId: string; enabled: boolean };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new RenderingControlService(device);
     await service.setDialogLevel(enabled);
 

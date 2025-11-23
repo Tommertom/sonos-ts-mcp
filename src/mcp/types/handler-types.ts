@@ -8,6 +8,7 @@ import type { SonosDevice } from '../../types/sonos.js';
 export interface ServerContext {
     registry: DeviceRegistry;
     resolver: DeviceResolver;
+    resolveDevice(identifier: string): Promise<SonosDevice>;
     fetchDeviceDetails(device: SonosDevice): Promise<void>;
     performAutoDiscovery(): Promise<void>;
     startPeriodicDiscovery(): void;

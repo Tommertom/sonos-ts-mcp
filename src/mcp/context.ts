@@ -19,6 +19,21 @@ export class ServerContext {
     }
 
     /**
+     * Resolve a device identifier to a SonosDevice, triggering discovery if needed
+     */
+    async resolveDevice(identifier: string): Promise<SonosDevice> {
+        try {
+            return this.resolver.resolve(identifier);
+        } catch (error) {
+            // If not found, try discovery once
+            console.error(`[DeviceResolver] Device "${identifier}" not found, attempting discovery...`);
+            await this.performAutoDiscovery();
+            // Try resolving again
+            return this.resolver.resolve(identifier);
+        }
+    }
+
+    /**
      * Fetch full device details from device_description.xml
      */
     async fetchDeviceDetails(device: SonosDevice): Promise<void> {

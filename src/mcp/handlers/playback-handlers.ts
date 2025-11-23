@@ -6,7 +6,7 @@ import { AVTransportService } from '../../services/av-transport.js';
  */
 export async function handlePlay(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.play();
 
@@ -25,7 +25,7 @@ export async function handlePlay(args: unknown, context: ServerContext): Promise
  */
 export async function handlePause(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.pause();
 
@@ -44,7 +44,7 @@ export async function handlePause(args: unknown, context: ServerContext): Promis
  */
 export async function handleStop(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.stop();
 
@@ -63,7 +63,7 @@ export async function handleStop(args: unknown, context: ServerContext): Promise
  */
 export async function handleNext(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.next();
 
@@ -82,7 +82,7 @@ export async function handleNext(args: unknown, context: ServerContext): Promise
  */
 export async function handlePrevious(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const success = await service.previous();
 
@@ -101,7 +101,7 @@ export async function handlePrevious(args: unknown, context: ServerContext): Pro
  */
 export async function handleGetTransportInfo(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const info = await service.getTransportInfo();
 
@@ -120,7 +120,7 @@ export async function handleGetTransportInfo(args: unknown, context: ServerConte
  */
 export async function handleGetPositionInfo(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const deviceId = (args as { deviceId: string }).deviceId;
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new AVTransportService(device);
     const info = await service.getPositionInfo();
 

@@ -10,7 +10,7 @@ export async function handleBrowseArtists(args: unknown, context: ServerContext)
         startIndex?: number;
         count?: number;
     };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new ContentDirectoryService(device);
     const result = await service.getArtists({ startIndex, count });
 
@@ -43,7 +43,7 @@ export async function handleBrowseAlbums(args: unknown, context: ServerContext):
         startIndex?: number;
         count?: number;
     };
-    const device = context.resolver.resolve(deviceId);
+    const device = await context.resolveDevice(deviceId);
     const service = new ContentDirectoryService(device);
     const result = await service.getAlbums({ startIndex, count });
 
