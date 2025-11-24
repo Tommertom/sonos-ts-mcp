@@ -4,6 +4,15 @@ All notable changes to the Sonos TypeScript MCP Server project.
 
 ## [Unreleased]
 
+### Added
+- **Device Topology Persistence**: Discovered devices are now automatically persisted to disk
+  - Topology stored in `mcp_data/sonos_topology.json`
+  - Devices automatically loaded on server startup
+  - Topology saved after every discovery operation (automatic or manual)
+  - Topology saved after manual device addition
+  - Includes comprehensive error handling and logging
+  - See `docs/topology-persistence.md` for detailed documentation
+
 ### Changed
 - **MCP Tool Descriptions**: Completely revised all 60+ tool descriptions to follow MCP best practices
   - Reduced verbose descriptions (50-100 lines) to concise 2-4 sentences

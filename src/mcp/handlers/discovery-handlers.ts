@@ -9,7 +9,7 @@ import { RequestBuilder } from '../../soap/request-builder.js';
 export async function handleDiscover(args: unknown, context: ServerContext): Promise<ToolResponse> {
     const timeout = typeof args === 'object' && args !== null && 'timeout' in args
         ? (args.timeout as number)
-        : 5000;
+        : 8000;
 
     const client = new SsdpClient();
     const responses = await client.discover(timeout);
@@ -83,6 +83,9 @@ export async function handleAddDevice(args: unknown, context: ServerContext): Pr
     }
 
     context.registry.addManualDevice(ip, port, name, deviceUuid);
+    
+    // Persist topology after adding device
+    await context.registry.saveTopology();
 
     return {
         content: [

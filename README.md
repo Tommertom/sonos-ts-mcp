@@ -148,6 +148,7 @@ This agent provides an easy way to verify that the MCP server is working correct
 
 This MCP server provides comprehensive control of your Sonos audio system:
 
+- **Topology Persistence**: Device topology automatically saved to disk and loaded on startup ✨ NEW
 - **Intelligent Device Resolution**: Control devices by friendly name (e.g., "Kitchen") instead of UUIDs ✨ NEW
 - **Automatic Discovery**: Discovers devices on startup and every 5 minutes ✨ NEW
 - **Device Discovery**: Manual SSDP-based discovery of Sonos devices
@@ -511,6 +512,7 @@ The server will test connectivity to the device before adding it to the registry
 ## Documentation
 
 - 📦 [Installation Guide](./docs/installation-guide.md) - Detailed installation and configuration instructions
+- 💾 [Topology Persistence Guide](./docs/topology-persistence.md) - Device topology storage and management ✨ NEW
 - 🎯 [Device Resolution Guide](./docs/device-resolution.md) - Using friendly device names ✨ NEW
 - 🧪 [API Testing Guide](./docs/api-testing-guide.md) - Comprehensive test suite documentation
 - 📘 [Implementation Guide](./docs/implementation-guide.md) - Tool usage and examples

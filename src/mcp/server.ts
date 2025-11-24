@@ -94,6 +94,9 @@ export class SonosMcpServer {
      * Start the MCP server
      */
     async run(): Promise<void> {
+        // Load persisted devices before starting
+        await this.context.initialize();
+        
         const transport = new StdioServerTransport();
         await this.server.connect(transport);
 

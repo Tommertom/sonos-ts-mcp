@@ -8,3 +8,6 @@ coverage/
 *.tsbuildinfo
 
 .npmrc
+
+# MCP data storage
+mcp_data/
