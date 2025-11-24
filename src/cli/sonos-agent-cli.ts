@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'dotenv/config';
 import { execSync } from 'child_process';
-import { initializeMastra } from '../mastra/config/index.js';
+import { initializeMastra } from './lib/mastra-init.js';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 

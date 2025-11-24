@@ -7,7 +7,7 @@ import {
     type ListToolsRequest,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ServerContext } from './context.js';
-import { allTools } from './schemas/tool-definitions.js';
+import { allTools } from './schemas/tools/index.js';
 import { toolHandlers } from './router.js';
 
 /**

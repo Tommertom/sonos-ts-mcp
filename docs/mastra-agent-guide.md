@@ -52,18 +52,21 @@ src/
 │   ├── agents/
 │   │   ├── sonos-agent.ts         # Sonos control agent definition
 │   │   └── index.ts
-│   ├── config/
-│   │   ├── mastra.config.ts       # Mastra initialization
-│   │   └── index.ts
-│   └── index.ts                    # Main exports
+```
+src/
 ├── cli/
-│   └── sonos-agent-cli.ts          # CLI entry point
+│   ├── lib/
+│   │   ├── mastra-init.ts        # Mastra initialization
+│   │   ├── mcp-client.ts         # MCP client connection
+│   │   ├── sonos-agent.ts        # Agent definition
+│   │   └── tool-adapter.ts       # Tool conversion
+│   └── sonos-agent-cli.ts        # CLI entry point
 └── [existing MCP server code]
 ```
 
 ### Components
 
-#### 1. MCP Client (`src/mastra/server/mcp-client.ts`)
+#### 1. MCP Client (`src/cli/lib/mcp-client.ts`)
 
 Manages connection to the Sonos MCP server via stdio transport.
 
@@ -82,7 +85,7 @@ const result = await mcpClient.callTool('toolName', { arg: 'value' });
 await mcpClient.disconnect();
 ```
 
-#### 2. MCP Tool Adapter (`src/mastra/tools/mcp-tool-adapter.ts`)
+#### 2. MCP Tool Adapter (`src/cli/lib/tool-adapter.ts`)
 
 Converts MCP tools to Mastra-compatible tool definitions.
 
@@ -99,13 +102,19 @@ const mastraTools = await adapter.loadTools();
 // Returns: Record<string, MastraTool>
 ```
 
-#### 3. Sonos Agent (`src/mastra/agents/sonos-agent.ts`)
+#### 3. Sonos Agent (`src/cli/lib/sonos-agent.ts`)
 
 Agent specialized in Sonos device control.
 
 **System Prompt Summary:**
 - Expert in Sonos audio systems
-- Handles device discovery and resolution
+- Always starts with device discovery (sonos_discover)
+- Resolves room names to device IDs
+- For playback requests by name (e.g., "Play Radio 2"):
+  - Searches favorites using sonos_get_favorite_radio_stations or sonos_get_sonos_favorites
+  - Fuzzy matches user query against favorite titles
+  - Extracts URI from matched item
+  - Plays using sonos_play_uri with proper metadata
 - Manages playback, volume, grouping, alarms, EQ
 - Provides clear, user-friendly feedback
 
@@ -117,7 +126,7 @@ const agent = createSonosAgent({
 });
 ```
 
-#### 4. Mastra Configuration (`src/mastra/config/mastra.config.ts`)
+#### 4. Mastra Configuration (`src/cli/lib/mastra-init.ts`)
 
 Initializes Mastra with MCP integration.
 
@@ -177,7 +186,22 @@ npm run agent "Group all speakers and play party music at 60% volume"
 5. Plays music
 6. Confirms setup
 
-### Example 3: Device Information
+### Example 3: Playing Radio by Name
+
+```bash
+npm run agent "Play Radio 2 in the kitchen"
+```
+
+**Agent Flow:**
+1. Discovers devices
+2. Finds "Kitchen" speaker
+3. Calls sonos_get_favorite_radio_stations
+4. Fuzzy matches "Radio 2" against favorite titles (e.g., "NPO Radio 2")
+5. Extracts URI from matched station
+6. Calls sonos_play_uri with the URI and metadata
+7. Confirms playback started
+
+### Example 4: Device Information
 
 ```bash
 npm run agent "What Sonos devices are available?"
@@ -188,7 +212,7 @@ npm run agent "What Sonos devices are available?"
 2. Lists devices with room names
 3. Provides friendly summary
 
-### Example 4: Alarm Management
+### Example 5: Alarm Management
 
 ```bash
 npm run agent "Set an alarm for 7 AM tomorrow with NPR news in the bedroom"
@@ -387,7 +411,7 @@ Create a test script:
 
 ```typescript
 // scripts/test-agent.ts
-import { initializeMastra } from './src/mastra/index.js';
+import { initializeMastra } from './src/cli/mastra/index.js';
 
 async function test() {
   const { mastra, cleanup } = await initializeMastra();
@@ -473,11 +497,10 @@ const { mastra, cleanup } = await initializeMastra({
 
 When extending the agent system:
 
-1. **Add new agents** to `src/mastra/agents/`
-2. **Add new tools** to `src/mastra/tools/`
-3. **Update configuration** in `src/mastra/config/`
-4. **Export** from `src/mastra/index.ts`
-5. **Document** in this file
+1. **Add new agents** to `src/cli/lib/`
+2. **Add new tools** to `src/cli/lib/`
+3. **Update configuration** in `src/cli/lib/mastra-init.ts`
+4. **Document** in this file
 
 ## License
 

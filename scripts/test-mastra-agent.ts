@@ -5,7 +5,7 @@
  */
 
 import 'dotenv/config';
-import { initializeMastra } from '../src/mastra/index.js';
+import { initializeMastra } from '../src/cli/lib/mastra-init.js';
 
 async function testAgent() {
     console.log('Testing Mastra Sonos Agent...\n');

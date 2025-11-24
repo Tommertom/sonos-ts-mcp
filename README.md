@@ -428,11 +428,16 @@ npm run test:phase4  # Event Subscriptions
 
 # Run Phase 2 tests in mock mode (no physical devices required)
 npm run test:phase2 -- --mock
+
+# Run integration tests (uses AI validation)
+npm test
 ```
 
 **Note**: Phase 2 tests support a mock mode for testing without physical Sonos devices. Use `--mock` flag or set `MOCK_DEVICES=true` environment variable.
 
-See the [API Testing Guide](./docs/api-testing-guide.md) for detailed documentation on the test suite.
+**AI-Powered Integration Tests**: The integration test suite uses Gemini 2.5 Flash AI to intelligently validate agent outputs instead of brittle string matching. This provides semantic understanding of test results and adapts to different output formats. Requires `GOOGLE_GENERATIVE_AI_API_KEY` environment variable.
+
+See the [API Testing Guide](./docs/api-testing-guide.md) and [AI-Powered Testing Guide](./docs/ai-powered-testing.md) for detailed documentation on the test suite.
 
 ## Architecture
 

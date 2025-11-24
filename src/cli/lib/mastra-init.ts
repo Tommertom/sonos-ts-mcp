@@ -1,8 +1,8 @@
 import { Mastra } from '@mastra/core/mastra';
 import { Agent } from '@mastra/core/agent';
-import { McpClient } from '../server/index.js';
-import { McpToolAdapter } from '../tools/index.js';
-import { createSonosAgent } from '../agents/index.js';
+import { McpClient } from './mcp-client.js';
+import { McpToolAdapter } from './tool-adapter.js';
+import { createSonosAgent } from './sonos-agent.js';
 
 export interface MastraConfigOptions {
     mcpServerPath?: string;

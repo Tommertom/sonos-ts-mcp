@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { McpClient, McpTool } from '../server/index.js';
+import { McpClient, McpTool } from './mcp-client.js';
 
 export interface MastraToolFromMcp {
     id: string;
