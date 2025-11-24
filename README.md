@@ -168,6 +168,7 @@ This MCP server provides comprehensive control of your Sonos audio system:
 - **Snapshot/Restore**: Save and restore complete device state
 - **Party Mode**: Join all devices at once
 - **Event Subscriptions**: Real-time notifications for state changes ✨ NEW
+- **MCP Prompts**: Exposes AI agent instructions as discoverable prompts ✨ NEW
 - **Pure TypeScript**: Built from scratch without external Sonos libraries
 - **MCP Compatible**: Integrates with any MCP-compatible client
 
@@ -240,8 +241,18 @@ See the [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for the latest features
 | `sonos_browse_tracks` | Browse all tracks in the music library |
 | `sonos_browse_genres` | Browse all genres in the music library |
 | `sonos_browse_playlists` | Browse Sonos playlists |
+| `sonos_get_favorite_radio_stations` | Get favorite radio stations from Sonos favorites |
 | `sonos_search_library` | Search the music library |
 | `sonos_browse_item` | Browse subcategories (e.g., albums for an artist) |
+
+### Music Services Tools
+| Tool | Description |
+|------|-------------|
+| `sonos_list_music_services` | List available music services (Sonos Radio, TuneIn, Spotify, etc.) |
+| `sonos_browse_music_service` | Browse content from a music service (categories, stations, playlists) |
+| `sonos_search_music_service` | Search for content within a music service |
+| `sonos_play_music_service_item` | Play an item from a music service (radio station, track, album) |
+| `sonos_get_music_service_item_uri` | Get the streaming URI for a music service item |
 
 ### Audio/EQ Control Tools
 | Tool | Description |
@@ -306,6 +317,16 @@ npm run test:discovery
 
 This will perform an SSDP multicast search and display any Sonos devices found on your network.
 
+### Test Favorite Radio Stations
+
+You can test the favorite radio stations feature:
+
+```bash
+npm run test:radio
+```
+
+This will query your Sonos device for saved radio stations and display them. If no stations are found, it will provide instructions on how to add some using the Sonos app.
+
 ## Usage
 
 ### As MCP Server
@@ -363,6 +384,8 @@ npx sonos-agent-cli "Play jazz in the living room" --model gemini-3-pro-preview
 - `OPENAI_API_KEY`: Required for OpenAI models (default)
 - `GOOGLE_GENERATIVE_AI_API_KEY`: Required for Gemini models
 - `SONOS_AGENT_MODEL`: Set the default model (optional, e.g., `gemini-3-pro-preview`)
+
+**Note on Telemetry**: The Mastra framework's built-in telemetry has been disabled in this implementation. Telemetry warnings are suppressed by setting `globalThis.___MASTRA_TELEMETRY___ = true` before Mastra initialization. This is set automatically in the CLI agent.
 
 #### SSE Mode (HTTP Server)
 

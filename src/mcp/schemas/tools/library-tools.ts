@@ -122,6 +122,30 @@ export const libraryTools: Tool[] = [
         },
     },
     {
+        name: 'sonos_get_favorite_radio_stations',
+        description: 'Get favorite radio stations from Sonos favorites. Returns a list of saved radio stations with their metadata and streaming URIs.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                deviceId: {
+                    type: 'string',
+                    description: 'Room name, UUID, or IP address',
+                },
+                startIndex: {
+                    type: 'number',
+                    description: 'Starting index for pagination (default: 0)',
+                    default: 0,
+                },
+                count: {
+                    type: 'number',
+                    description: 'Number of items to return (default: 100)',
+                    default: 100,
+                },
+            },
+            required: ['deviceId'],
+        },
+    },
+    {
         name: 'sonos_search_library',
         description: 'Search the music library by artist, album, track, or genre. Returns matching items.',
         inputSchema: {

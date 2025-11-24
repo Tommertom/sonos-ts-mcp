@@ -9,6 +9,7 @@ export { libraryTools } from './library-tools.js';
 export { alarmTools } from './alarm-tools.js';
 export { snapshotTools } from './snapshot-tools.js';
 export { eventTools } from './event-tools.js';
+export { musicServiceTools } from './music-service-tools.js';
 
 import { discoveryTools } from './discovery-tools.js';
 import { playbackTools } from './playback-tools.js';
@@ -19,6 +20,7 @@ import { libraryTools } from './library-tools.js';
 import { alarmTools } from './alarm-tools.js';
 import { snapshotTools } from './snapshot-tools.js';
 import { eventTools } from './event-tools.js';
+import { musicServiceTools } from './music-service-tools.js';
 
 export const allTools: Tool[] = [
     ...discoveryTools,
@@ -30,4 +32,5 @@ export const allTools: Tool[] = [
     ...alarmTools,
     ...snapshotTools,
     ...eventTools,
+    ...musicServiceTools,
 ];

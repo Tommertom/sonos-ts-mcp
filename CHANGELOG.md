@@ -4,6 +4,13 @@ All notable changes to the Sonos TypeScript MCP Server project.
 
 ## [Unreleased]
 
+### Fixed
+- **Music Service Media URI Parsing**: Fixed `getMediaURI` response parsing to handle both direct text content and nested URI formats
+  - Now correctly parses URI from services like SomaFM that return URI as direct text content of `<getMediaURIResult>`
+  - Maintains backward compatibility with services using nested `<uri>` elements
+  - Enables successful playback from anonymous music services (SomaFM, TuneIn, etc.)
+  - See `docs/MUSIC-SERVICE-URI-FIX.md` for details
+
 ### Added
 - **Device Topology Persistence**: Discovered devices are now automatically persisted to disk
   - Topology stored in `mcp_data/sonos_topology.json`

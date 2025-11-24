@@ -170,6 +170,40 @@ export async function handleBrowsePlaylists(args: unknown, context: ServerContex
 }
 
 /**
+ * Handle sonos_get_favorite_radio_stations
+ */
+export async function handleGetFavoriteRadioStations(args: unknown, context: ServerContext): Promise<ToolResponse> {
+    const { deviceId, startIndex = 0, count = 100 } = args as {
+        deviceId: string;
+        startIndex?: number;
+        count?: number;
+    };
+    const device = context.resolver.resolve(deviceId);
+    const service = new ContentDirectoryService(device);
+    const result = await service.getFavoriteRadioStations({ startIndex, count });
+
+    const stations = result.items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        uri: item.resources[0]?.uri,
+        type: item.upnpClass,
+    }));
+
+    return {
+        content: [
+            {
+                type: 'text',
+                text: JSON.stringify({
+                    items: stations,
+                    total: result.total,
+                    returned: result.returned,
+                }),
+            },
+        ],
+    };
+}
+
+/**
  * Handle sonos_search_library
  */
 export async function handleSearchLibrary(args: unknown, context: ServerContext): Promise<ToolResponse> {

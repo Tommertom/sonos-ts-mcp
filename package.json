@@ -18,6 +18,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:discovery": "tsx scripts/test-discovery.ts",
+    "test:radio": "tsx scripts/test-favorite-radio-stations.ts",
+    "test:music-services": "tsx scripts/test-music-services.ts",
     "lint": "eslint src tests",
     "format": "prettier --write src tests",
     "typecheck": "tsc --noEmit",

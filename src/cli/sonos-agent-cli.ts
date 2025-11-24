@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 import 'dotenv/config';
+
+// Disable Mastra telemetry warnings
+(globalThis as any).___MASTRA_TELEMETRY___ = true;
+
 import { execSync } from 'child_process';
 import { initializeMastra } from './lib/mastra-init.js';
 import { join, dirname } from 'path';

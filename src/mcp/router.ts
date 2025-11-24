@@ -46,6 +46,7 @@ import {
     handleBrowseTracks,
     handleBrowseGenres,
     handleBrowsePlaylists,
+    handleGetFavoriteRadioStations,
     handleSearchLibrary,
     handleBrowseItem,
 } from './handlers/library-handlers.js';
@@ -68,6 +69,13 @@ import {
     handleUnsubscribeAll,
     handleListSubscriptions,
 } from './handlers/event-handlers.js';
+import {
+    handleListMusicServices,
+    handleBrowseMusicService,
+    handleSearchMusicService,
+    handlePlayMusicServiceItem,
+    handleGetMusicServiceItemUri,
+} from './handlers/music-service-handlers.js';
 
 /**
  * Tool handler registry - maps tool names to handler functions
@@ -122,6 +130,7 @@ export const toolHandlers: ToolHandlerMap = {
     'sonos_browse_tracks': handleBrowseTracks,
     'sonos_browse_genres': handleBrowseGenres,
     'sonos_browse_playlists': handleBrowsePlaylists,
+    'sonos_get_favorite_radio_stations': handleGetFavoriteRadioStations,
     'sonos_search_library': handleSearchLibrary,
     'sonos_browse_item': handleBrowseItem,
 
@@ -143,4 +152,11 @@ export const toolHandlers: ToolHandlerMap = {
     'sonos_unsubscribe_events': handleUnsubscribeEvents,
     'sonos_unsubscribe_all': handleUnsubscribeAll,
     'sonos_list_subscriptions': handleListSubscriptions,
+
+    // Music service handlers
+    'sonos_list_music_services': handleListMusicServices,
+    'sonos_browse_music_service': handleBrowseMusicService,
+    'sonos_search_music_service': handleSearchMusicService,
+    'sonos_play_music_service_item': handlePlayMusicServiceItem,
+    'sonos_get_music_service_item_uri': handleGetMusicServiceItemUri,
 };
