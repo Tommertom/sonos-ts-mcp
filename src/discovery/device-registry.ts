@@ -1,7 +1,25 @@
 import type { SonosDevice, SonosDiscoveryResponse } from '../types/sonos.js';
+import { TopologyPersistence } from './topology-persistence.js';
 
 export class DeviceRegistry {
     private devices = new Map<string, SonosDevice>();
+    private persistence: TopologyPersistence;
+
+    constructor(persistencePath?: string) {
+        this.persistence = new TopologyPersistence(persistencePath);
+    }
+
+    async loadPersistedDevices(): Promise<void> {
+        const devices = await this.persistence.load();
+        for (const device of devices) {
+            this.devices.set(device.uuid, device);
+        }
+    }
+
+    async saveTopology(): Promise<void> {
+        const devices = this.getAllDevices();
+        await this.persistence.save(devices);
+    }
 
     addManualDevice(ip: string, port = 1400, name?: string, uuid?: string): SonosDevice {
         // Use provided UUID if available, otherwise create a fallback UUID
@@ -77,5 +95,9 @@ export class DeviceRegistry {
 
     get size(): number {
         return this.devices.size;
+    }
+
+    getPersistencePath(): string {
+        return this.persistence.getPersistencePath();
     }
 }

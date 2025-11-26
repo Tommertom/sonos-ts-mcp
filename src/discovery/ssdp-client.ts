@@ -1,11 +1,12 @@
 import dgram from 'node:dgram';
 import { EventEmitter } from 'node:events';
+import os from 'node:os';
 import type { SonosDiscoveryResponse } from '../types/sonos.js';
 
 const SSDP_ADDRESS = '239.255.255.250';
 const SSDP_PORT = 1900;
 const SEARCH_TARGET = 'urn:schemas-upnp-org:device:ZonePlayer:1';
-const SEARCH_MX = 1;
+const SEARCH_MX = 3;
 
 export class SsdpClient extends EventEmitter {
     private socket: dgram.Socket | null = null;
@@ -36,27 +37,52 @@ export class SsdpClient extends EventEmitter {
             });
 
             this.socket.on('message', (msg) => {
+                console.error('[SSDP Client] Received message:', msg.toString().substring(0, 200));
                 const response = this.parseResponse(msg.toString());
                 if (response && response.location) {
+                    console.error('[SSDP Client] Valid Sonos device found:', response.location);
                     devices.set(response.location, response);
                     this.emit('device', response);
+                } else {
+                    console.error('[SSDP Client] Message did not parse as Sonos device');
                 }
             });
 
             this.socket.bind(() => {
+                console.error('[SSDP Client] Socket bound, configuring multicast...');
                 this.socket?.setBroadcast(true);
                 this.socket?.setMulticastTTL(4);
-                this.socket?.addMembership(SSDP_ADDRESS);
+
+                // Try to join multicast on all active interfaces
+                const interfaces = os.networkInterfaces();
+                for (const [name, addrs] of Object.entries(interfaces)) {
+                    const ipv4 = addrs?.filter(addr => addr.family === 'IPv4' && !addr.internal);
+                    if (ipv4 && ipv4.length > 0) {
+                        for (const addr of ipv4) {
+                            try {
+                                this.socket?.addMembership(SSDP_ADDRESS, addr.address);
+                                console.error(`[SSDP Client] Joined multicast on ${name} (${addr.address})`);
+                            } catch (err) {
+                                console.error(`[SSDP Client] Failed to join multicast on ${name}:`, err);
+                            }
+                        }
+                    }
+                }
+                console.error('[SSDP Client] Multicast configured, sending M-SEARCH...');
 
                 const message = Buffer.from(this.searchMessage, 'utf-8');
                 this.socket?.send(message, 0, message.length, SSDP_PORT, SSDP_ADDRESS, (err) => {
                     if (err) {
+                        console.error('[SSDP Client] Send error:', err);
                         this.cleanup();
                         reject(err);
+                    } else {
+                        console.error(`[SSDP Client] M-SEARCH sent, waiting ${timeout}ms for responses...`);
                     }
                 });
 
                 setTimeout(() => {
+                    console.error(`[SSDP Client] Timeout reached, found ${devices.size} device(s)`);
                     this.cleanup();
                     resolve(Array.from(devices.values()));
                 }, timeout);

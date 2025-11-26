@@ -19,6 +19,17 @@ export class ServerContext {
     }
 
     /**
+     * Initialize the context by loading persisted devices
+     */
+    async initialize(): Promise<void> {
+        await this.registry.loadPersistedDevices();
+        const deviceCount = this.registry.getAllDevices().length;
+        if (deviceCount > 0) {
+            console.error(`[ServerContext] Loaded ${deviceCount} persisted device(s)`);
+        }
+    }
+
+    /**
      * Resolve a device identifier to a SonosDevice, triggering discovery if needed
      */
     async resolveDevice(identifier: string): Promise<SonosDevice> {
@@ -86,7 +97,7 @@ export class ServerContext {
         try {
             console.error('[Auto-Discovery] Starting device discovery...');
             const client = new SsdpClient();
-            const responses = await client.discover(5000);
+            const responses = await client.discover(8000);
 
             for (const response of responses) {
                 const device = this.registry.addFromDiscovery(response);
@@ -97,6 +108,9 @@ export class ServerContext {
 
             const devices = this.registry.getAllDevices();
             console.error(`[Auto-Discovery] Found ${responses.length} device(s), total registered: ${devices.length}`);
+            
+            // Persist topology after discovery
+            await this.registry.saveTopology();
         } catch (error) {
             console.error('[Auto-Discovery] Error during discovery:', error);
         }

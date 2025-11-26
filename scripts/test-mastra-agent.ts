@@ -5,6 +5,10 @@
  */
 
 import 'dotenv/config';
+
+// Disable Mastra telemetry warnings
+(globalThis as any).___MASTRA_TELEMETRY___ = true;
+
 import { initializeMastra } from '../src/cli/lib/mastra-init.js';
 
 async function testAgent() {

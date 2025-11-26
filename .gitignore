@@ -9,3 +9,6 @@ coverage/
 
 .npmrc
 core
+
+# MCP data storage
+mcp_data/

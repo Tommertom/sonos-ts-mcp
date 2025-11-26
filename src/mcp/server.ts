@@ -3,12 +3,17 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
     CallToolRequestSchema,
     ListToolsRequestSchema,
+    ListPromptsRequestSchema,
+    GetPromptRequestSchema,
     type CallToolRequest,
     type ListToolsRequest,
+    type ListPromptsRequest,
+    type GetPromptRequest,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ServerContext } from './context.js';
 import { allTools } from './schemas/tools/index.js';
 import { toolHandlers } from './router.js';
+import { SONOS_AGENT_INSTRUCTIONS } from './constants.js';
 
 /**
  * Sonos MCP Server - Orchestrates MCP protocol and delegates to modular components
@@ -27,6 +32,7 @@ export class SonosMcpServer {
             {
                 capabilities: {
                     tools: {},
+                    prompts: {},
                 },
             }
         );
@@ -53,6 +59,36 @@ export class SonosMcpServer {
             CallToolRequestSchema,
             async (request: CallToolRequest) => this.handleToolCall(request)
         );
+
+        // List all available prompts
+        this.server.setRequestHandler(ListPromptsRequestSchema, async (_request: ListPromptsRequest) => ({
+            prompts: [
+                {
+                    name: 'sonos-agent-instructions',
+                    description: 'Instructions for AI agents on how to properly control Sonos devices using the MCP tools',
+                },
+            ],
+        }));
+
+        // Get a specific prompt
+        this.server.setRequestHandler(GetPromptRequestSchema, async (request: GetPromptRequest) => {
+            if (request.params.name !== 'sonos-agent-instructions') {
+                throw new Error(`Unknown prompt: ${request.params.name}`);
+            }
+
+            return {
+                description: 'Comprehensive instructions for controlling Sonos devices',
+                messages: [
+                    {
+                        role: 'user',
+                        content: {
+                            type: 'text',
+                            text: SONOS_AGENT_INSTRUCTIONS,
+                        },
+                    },
+                ],
+            };
+        });
     }
 
     /**
@@ -94,6 +130,9 @@ export class SonosMcpServer {
      * Start the MCP server
      */
     async run(): Promise<void> {
+        // Load persisted devices before starting
+        await this.context.initialize();
+
         const transport = new StdioServerTransport();
         await this.server.connect(transport);
 
