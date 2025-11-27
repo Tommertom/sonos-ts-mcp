@@ -14,6 +14,7 @@ import { ServerContext } from './context.js';
 import { allTools } from './schemas/tools/index.js';
 import { toolHandlers } from './router.js';
 import { SONOS_AGENT_INSTRUCTIONS } from './constants.js';
+import { getAiConfig } from './config/env-config.js';
 
 /**
  * Sonos MCP Server - Orchestrates MCP protocol and delegates to modular components
@@ -40,6 +41,14 @@ export class SonosMcpServer {
         console.error('Sonos MCP Server initialized - Multi-Room Audio Control for AI Agents');
         console.error('Supports: Playback control, volume management, multi-room grouping, music library browsing');
         console.error('Optimized for: Home audio automation, music streaming, zone coordination, smart scenes');
+        
+        // Log AI capability status
+        const aiConfig = getAiConfig();
+        if (aiConfig.hasAiKeys) {
+            console.error(`✨ AI Agent Tool enabled - Model: ${aiConfig.model} (${aiConfig.provider})`);
+        } else {
+            console.error('AI Agent Tool disabled - Set OPENAI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY to enable');
+        }
 
         this.context = new ServerContext();
         this.setupHandlers();

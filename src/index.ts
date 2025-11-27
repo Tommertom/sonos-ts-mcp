@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import 'dotenv/config';
 import { SonosMcpServer } from './mcp/server.js';
 
 const server = new SonosMcpServer();

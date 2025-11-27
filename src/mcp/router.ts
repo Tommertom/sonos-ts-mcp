@@ -76,11 +76,13 @@ import {
     handlePlayMusicServiceItem,
     handleGetMusicServiceItemUri,
 } from './handlers/music-service-handlers.js';
+import { handleAgentInstruction } from './handlers/agent-handler.js';
+import { getAiConfig } from './config/env-config.js';
 
 /**
  * Tool handler registry - maps tool names to handler functions
  */
-export const toolHandlers: ToolHandlerMap = {
+const baseHandlers: ToolHandlerMap = {
     // Discovery handlers
     'sonos_discover': handleDiscover,
     'sonos_add_device': handleAddDevice,
@@ -160,3 +162,11 @@ export const toolHandlers: ToolHandlerMap = {
     'sonos_play_music_service_item': handlePlayMusicServiceItem,
     'sonos_get_music_service_item_uri': handleGetMusicServiceItemUri,
 };
+
+// Conditionally add agent handler if AI keys are configured
+const aiConfig = getAiConfig();
+if (aiConfig.hasAiKeys) {
+    baseHandlers['sonos_agent'] = handleAgentInstruction;
+}
+
+export const toolHandlers: ToolHandlerMap = baseHandlers;

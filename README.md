@@ -148,9 +148,10 @@ This agent provides an easy way to verify that the MCP server is working correct
 
 This MCP server provides comprehensive control of your Sonos audio system:
 
-- **Topology Persistence**: Device topology automatically saved to disk and loaded on startup ✨ NEW
-- **Intelligent Device Resolution**: Control devices by friendly name (e.g., "Kitchen") instead of UUIDs ✨ NEW
-- **Automatic Discovery**: Discovers devices on startup and every 5 minutes ✨ NEW
+- **AI-Powered Agent Tool**: Natural language control via the `sonos_agent` tool (requires AI API keys) ✨ NEW
+- **Topology Persistence**: Device topology automatically saved to disk and loaded on startup
+- **Intelligent Device Resolution**: Control devices by friendly name (e.g., "Kitchen") instead of UUIDs
+- **Automatic Discovery**: Discovers devices on startup and every 5 minutes
 - **Device Discovery**: Manual SSDP-based discovery of Sonos devices
 - **Playback Control**: Play, pause, stop, next, previous
 - **Volume Control**: Get and set volume levels, mute/unmute
@@ -184,6 +185,11 @@ This project is actively expanding to match the comprehensive feature set of the
 See the [Phase 4 completion](./docs/PHASE-4-COMPLETE.md) for the latest features.
 
 ## Tools Available
+
+### AI Agent Tool ✨ NEW
+| Tool | Description |
+|------|-------------|
+| `sonos_agent` | AI-powered natural language control. Give instructions like "Play jazz in the living room" and the agent autonomously handles device discovery, tool selection, and execution. Only available when `OPENAI_API_KEY` or `GOOGLE_GENERATIVE_AI_API_KEY` is configured. See [Agent Tool Documentation](./docs/agent-tool.md) for details. |
 
 ### Discovery Tools
 | Tool | Description |
@@ -326,6 +332,23 @@ npm run test:radio
 ```
 
 This will query your Sonos device for saved radio stations and display them. If no stations are found, it will provide instructions on how to add some using the Sonos app.
+
+### Test Agent Tool
+
+You can test the AI-powered agent tool (requires AI API keys):
+
+```bash
+# Set up your API key first
+export OPENAI_API_KEY=sk-...
+# or
+export GOOGLE_GENERATIVE_AI_API_KEY=...
+
+# Run the test
+npm run test:agent-tool
+```
+
+This will verify that the agent tool is properly configured and can execute natural language instructions. See the [Agent Tool Documentation](./docs/agent-tool.md) for more details.
+
 
 ## Usage
 
@@ -534,6 +557,8 @@ The server will test connectivity to the device before adding it to the registry
 
 ## Documentation
 
+- 🤖 **[Agent Tool Guide](./docs/agent-tool.md)** - AI-powered natural language control ✨ NEW
+- 📚 **[Comprehensive Tool Descriptions](./docs/TOOL_DESCRIPTIONS.md)** - Detailed guide for coding agents with use cases, workflows, and best practices for all 50+ tools
 - 📦 [Installation Guide](./docs/installation-guide.md) - Detailed installation and configuration instructions
 - 💾 [Topology Persistence Guide](./docs/topology-persistence.md) - Device topology storage and management ✨ NEW
 - 🎯 [Device Resolution Guide](./docs/device-resolution.md) - Using friendly device names ✨ NEW
