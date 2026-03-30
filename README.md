@@ -14,6 +14,10 @@ Data is sourced from real-time UPnP/SOAP communication with Sonos devices to ens
 - **[API Reference](./docs/)** - Technical API documentation
 - **[Example Scripts](./scripts/)** - Sample automation scripts and use cases
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/tommertom-sonos-ts-mcp).
+
 ## Getting Started
 
 The Sonos TypeScript MCP Server can work with any MCP client that supports standard I/O (stdio) as the transport medium. Here are specific instructions for some popular tools:
