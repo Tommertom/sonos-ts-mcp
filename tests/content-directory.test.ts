@@ -184,7 +184,7 @@ describe('ContentDirectoryService', () => {
     });
 
     describe('search', () => {
-        it('should search for artists', async () => {
+        it('should browse the prefixed container for artists', async () => {
             const mockResponse = {
                 success: true,
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>5</TotalMatches><NumberReturned>5</NumberReturned>`,
@@ -196,12 +196,12 @@ describe('ContentDirectoryService', () => {
 
             expect(result.total).toBe(5);
             expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
-                'Search',
-                expect.stringContaining('Beatles')
+                'Browse',
+                expect.stringContaining('A:ARTIST:Beatles')
             );
         });
 
-        it('should escape special characters in search term', async () => {
+        it('should preserve raw search term in the container id', async () => {
             const mockResponse = {
                 success: true,
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
@@ -211,13 +211,14 @@ describe('ContentDirectoryService', () => {
 
             await service.search('artists', 'AC"DC');
 
+            // RequestBuilder XML-escapes the body, so quotes appear as &quot;
             expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
-                'Search',
-                expect.stringContaining('&quot;')
+                'Browse',
+                expect.stringContaining('A:ARTIST:AC&quot;DC')
             );
         });
 
-        it('should build correct search criteria for albums', async () => {
+        it('should browse the prefixed container for albums', async () => {
             const mockResponse = {
                 success: true,
                 body: `<Result>&lt;DIDL-Lite&gt;&lt;/DIDL-Lite&gt;</Result><TotalMatches>0</TotalMatches><NumberReturned>0</NumberReturned>`,
@@ -228,8 +229,8 @@ describe('ContentDirectoryService', () => {
             await service.search('albums', 'Black Album');
 
             expect((service as unknown as TestableContentDirectoryService).callAction).toHaveBeenCalledWith(
-                'Search',
-                expect.stringContaining('dc:title contains')
+                'Browse',
+                expect.stringContaining('A:ALBUM:Black Album')
             );
         });
     });
