@@ -268,88 +268,23 @@ export class ContentDirectoryService extends BaseService {
     }
 
     /**
-     * Search for music in the library
-     * @param searchType - The type of search
-     * @param searchTerm - The search term (fuzzy search)
-     * @param options - Browse options
-     * @returns Search result
+     * Search for music in the library.
+     *
+     * Sonos's UPnP ContentDirectory Search() action is unreliable for
+     * library queries — most criteria return 0 even on a fully-indexed
+     * share. The pattern Sonos's own app (and SoCo) uses is Browse()
+     * against a container ID of the form `<base>:<term>` (e.g.
+     * `A:ARTIST:sting`), which returns containers whose name contains
+     * `<term>` (case-insensitive substring match).
      */
     async search(
         searchType: SearchType,
         searchTerm: string,
         options: BrowseOptions = {}
     ): Promise<SearchResult> {
-        const objectId = this.getSearchTypeObjectId(searchType);
-
-        // Build search criteria
-        // Format: upnp:class derivedfrom "object.item.audioItem" and dc:title contains "searchTerm"
-        const searchCriteria = this.buildSearchCriteria(searchType, searchTerm);
-
-        const {
-            startIndex = 0,
-            count = 100,
-            filter = '*',
-            sortCriteria = '',
-        } = options;
-
-        const body = RequestBuilder.buildSimpleBody({
-            ContainerID: objectId,
-            SearchCriteria: searchCriteria,
-            Filter: filter,
-            StartingIndex: startIndex,
-            RequestedCount: count,
-            SortCriteria: sortCriteria,
-        });
-
-        const response = await this.callAction('Search', body);
-
-        if (!response.success || !response.body) {
-            return { items: [], total: 0, returned: 0 };
-        }
-
-        const result = XmlParser.extractValue(response.body, 'Result') ?? '';
-        const totalMatches = parseInt(XmlParser.extractValue(response.body, 'TotalMatches') ?? '0');
-        const numberReturned = parseInt(XmlParser.extractValue(response.body, 'NumberReturned') ?? '0');
-
-        let items: DidlObject[] = [];
-        if (result) {
-            try {
-                const unescapedResult = XmlParser.unescapeXml(result);
-                items = await fromDidlString(unescapedResult);
-            } catch (error) {
-                console.error('Error parsing DIDL result:', error);
-            }
-        }
-
-        return {
-            items,
-            total: totalMatches,
-            returned: numberReturned,
-        };
-    }
-
-    /**
-     * Build search criteria for different search types
-     */
-    private buildSearchCriteria(searchType: SearchType, searchTerm: string): string {
-        // Escape special characters in search term
-        const escapedTerm = searchTerm.replace(/"/g, '&quot;');
-
-        switch (searchType) {
-            case 'artists':
-            case 'album_artists':
-                return `dc:creator contains "${escapedTerm}"`;
-            case 'albums':
-                return `dc:title contains "${escapedTerm}"`;
-            case 'tracks':
-                return `dc:title contains "${escapedTerm}"`;
-            case 'composers':
-                return `dc:creator contains "${escapedTerm}"`;
-            case 'genres':
-                return `upnp:genre contains "${escapedTerm}"`;
-            default:
-                return `dc:title contains "${escapedTerm}"`;
-        }
+        const baseObjectId = this.getSearchTypeObjectId(searchType);
+        const searchObjectId = `${baseObjectId}:${searchTerm}`;
+        return this.browse(searchObjectId, options);
     }
 
     /**
